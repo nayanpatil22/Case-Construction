@@ -1,336 +1,252 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useRef, useState, useEffect } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
-import { image } from 'framer-motion/client';
+import { motion } from 'framer-motion';
 
 export default function CaseConstructionSite() {
   const router = useRouter();
-  const [hasScrolled, setHasScrolled] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
-
-  useEffect(() => {
-    const handleScroll = () => setHasScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  const [activeTab, setActiveTab] = useState('backhoe');
 
   const fleetData = {
     backhoe: [
-      {
-        name: "770NX",
-        image: "/images/fleet/770NX_96x49-01 (1).jpg",
-        desc: "Delivers power, efficiency, and versatility with dual power curves (60 HP & 74 HP). Ideal for excavation and material handling with ECO, Standard, and Power modes.",
-        specs: { engine: "54.6 kW / 74 hp", weight: "7600 kg" },
-        highlights: ["Two power curves: 60HP/74HP", "ROPS/FOPS cabin with 360° visibility", "Smart Telematics", "Reliable at -20°C"]
-      },
-      {
-        name: "770NX MAGNUM",
-        image: "/images/fleet/770_Magnum_96x49-01.jpg",
-        desc: "Robust 74 HP engine with a reinforced build for heavy excavation. Features a 4.4 m digging depth and 1.1 m³ loader bucket for high-demand job sites.",
-        specs: { engine: "54.6 kW / 74 hp", weight: "7700 kg" },
-        highlights: ["74 HP fuel-efficient engine", "4.4 m digging depth", "3 Work modes (RPM control)", "Spacious cabin"]
-      },
-      {
-        name: "851NX",
-        image: "/images/fleet/851NX_96x49_5x3.jpg",
-        desc: "Superior reach with a 4.7 m digging depth and 1.2 m³ bucket. Available in side-shift or center-pivot designs to adapt to diverse site requirements.",
-        specs: { engine: "54.6 kW / 74 hp", weight: "7800 / 7700 kg" },
-        highlights: ["4.7 m digging depth", "Side-shift or Center-pivot", "Premium HVAC system", "Low-noise cabin"]
-      }
+      { name: "770NX", image: "/images/fleet/770NX_96x49-01 (1).jpg", hp: "74 hp", weight: "7600 kg", desc: "Dual power curves for optimal performance." },
+      { name: "770NX MAGNUM", image: "/images/fleet/770_Magnum_96x49-01.jpg", hp: "74 hp", weight: "7700 kg", desc: "Reinforced build for heavy excavation." },
+      { name: "851NX", image: "/images/fleet/851NX_96x49_5x3.jpg", hp: "74 hp", weight: "7800 kg", desc: "Superior reach with 4.7m digging depth." }
     ],
     compactors: [
-      {
-        series: "Single Drum Rollers",
-        name: "1107NX Soil Compactor",
-        image: "/images/fleet/Compactor_1107NX_96x49-01.jpg",
-        desc: "High power and stability with a 101 HP engine and 31% gradeability. Dual-mode vibration ensures effective compaction across soil types.",
-        specs: { engine: "101 hp", weight: "11100/11550 kg", extra: "Frequency: 31 Hz" },
-        highlights: ["Powerful 101 HP engine", "Dual-mode vibration", "myCASE Construction telematics", "Reinforced drum design"]
-      },
-      {
-        series: "Double Drum Rollers",
-        name: "Tandem Vibratory Compactor",
-        image: "/images/fleet/450_DX_96x49-01.jpg",
-        desc: "Precision road finishing with a 9,200 kg operating weight and up to 121.6 kN compaction force. Dual amplitude-frequency adapts to urban road conditions.",
-        specs: { engine: "74 hp", weight: "9200 kg", extra: "Frequency: 36.5 - 50 Hz" },
-        highlights: ["Class-leading curb clearance", "Vibration-free design", "Rotating operator seat", "Dual pump sprinkler system"]
-      }
+      { name: "1107NX Soil", image: "/images/fleet/Compactor_1107NX_96x49-01.jpg", hp: "101 hp", weight: "11100 kg", desc: "High stability road construction specialist." },
+      { name: "Tandem Vibratory", image: "/images/fleet/450_DX_96x49-01.jpg", hp: "74 hp", weight: "9200 kg", desc: "Precision asphalt finishing." }
     ],
     excavators: [
-      {
-        name: "CX220C",
-        image: "/images/fleet/Cx220C.jpg",
-        desc: "Equipped with the Case Intelligent Hydraulic System (CIHS), ensuring strong breakout force, faster cycle times, and perfectly balanced performance.",
-        specs: { engine: "157 hp / 117 kW", weight: "21600 kg" },
-        highlights: ["Advanced CIHS technology", "Faster cycle times", "Balanced productivity", "Heavy-duty durability"]
-      },
-      {
-        name: "CX220C LC",
-        image: "/images/fleet/Chex_96x49_9x6.jpg",
-        desc: "Delivers up to 17% more horsepower. Built for reliability in tough conditions with a wide range from 1.7 to 80 metric tons available.",
-        specs: { engine: "157 hp / 117 kW", weight: "22220 kg" },
-        highlights: ["17% more horsepower", "Significant fuel savings", "Minimum swing radius", "LC undercarriage stability"]
-      }
+      { name: "CX220C", image: "/images/fleet/Cx220C.jpg", hp: "157 hp", weight: "21600 kg", desc: "Intelligent hydraulic system for fast cycles." },
+      { name: "CX220C LC", image: "/images/fleet/Chex_96x49_9x6.jpg", hp: "157 hp", weight: "22220 kg", desc: "Boosted productivity with LC undercarriage." }
     ],
     dozers: [
-      {
-        series: "L-Series",
-        name: "1105L",
-        image: "/images/fleet/trator-esteira-case-1150L.banner_.webp",
-        desc: "Precision and versatility for demanding sites. Features a PAT (Pitch Angle Tilt) blade for faster dozing and XLT tracks for stable performance.",
-        specs: { engine: "132 hp / 97 kW", weight: "13625 kg" },
-        highlights: ["PAT Blade technology", "XLT Track stability", "Common rail engine", "High pulling capacity"]
-      },
-      {
-        series: "L-Series",
-        name: "1650L",
-        image: "/images/fleet/crawler-dozers-1650l.webp",
-        desc: "High-performance FPT Industrial engine with dual-path hydrostatic transmission for superior maneuverability in demanding operations.",
-        specs: { engine: "158 hp / 116 kW", weight: "17960 kg" },
-        highlights: ["Dual-path hydrostatic drive", "Tiltable cab for service", "Ground-level access", "Quick load response"]
-      },
-      {
-        series: "M-Series",
-        name: "2050M",
-        image: "/images/fleet/Dozzer_96x49-01.jpg",
-        desc: "Built for large cuts and heavy earthmoving. Compatible with advanced machine and grade control systems for maximum accuracy.",
-        specs: { engine: "214 hp / 160 kW", weight: "20592 - 20599 kg" },
-        highlights: ["Industry-leading visibility", "Grade control compatible", "Maximum earthmoving strength", "Clean operator station"]
-      }
+      { name: "1105L", image: "/images/fleet/trator-esteira-case-1150L.banner_.webp", hp: "132 hp", weight: "13625 kg", desc: "PAT blade technology for faster dozing." },
+      { name: "1650L", image: "/images/fleet/crawler-dozers-1650l.webp", hp: "158 hp", weight: "17960 kg", desc: "Dual-path hydrostatic transmission." },
+      { name: "2050M", image: "/images/fleet/Dozzer_96x49-01.jpg", hp: "214 hp", weight: "20592 kg", desc: "Maximum power for heavy earthmoving." }
     ]
   };
 
-  return (
-    <main className="bg-[#fdfdfd] selection:bg-orange-500 selection:text-white overflow-x-hidden font-sans text-zinc-900">
-      
-      {/* 1. DYNAMIC NAVIGATION */}
-      <nav className={`fixed top-0 w-full p-8 flex justify-between items-center z-[100] transition-all duration-700 ${hasScrolled ? 'bg-white/80 backdrop-blur-xl py-6 border-b border-zinc-100' : 'bg-transparent'}`}>
-        <button onClick={() => router.push('/')} className="flex flex-col items-start group cursor-pointer">
-          <span className="font-black tracking-tighter text-2xl uppercase leading-none">CASE</span>
-          <span className="text-[9px] font-mono tracking-[0.4em] text-orange-600 mt-1 uppercase font-bold">Equipment India</span>
-        </button>
-        
-        <div className="hidden md:flex gap-12 font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-400">
-          {['Heritage', 'Fleet', 'Refurbish', 'Contact'].map((item) => (
-            <a key={item} href={`#${item.toLowerCase()}`} className="hover:text-black transition-colors">{item}</a>
-          ))}
-        </div>
+  const categories = [
+    { id: 'backhoe', label: 'Backhoe Loaders' },
+    { id: 'compactors', label: 'Compactors' },
+    { id: 'excavators', label: 'Crawler Excavators' },
+    { id: 'dozers', label: 'Crawler Dozers' }
+  ];
 
-        <button className="bg-black text-white px-8 py-3 rounded-full font-mono text-[10px] uppercase tracking-widest hover:bg-orange-600 transition-all shadow-xl shadow-black/5 cursor-pointer">
-          Get Quote _
-        </button>
+  return (
+    <main className="bg-white font-sans text-slate-900 selection:bg-orange-600 selection:text-white">
+      
+      {/* 1. CORPORATE HEADER */}
+      <nav className="sticky top-0 w-full bg-slate-900 text-white z-[100] border-b-4 border-orange-600 shadow-2xl">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          <button onClick={() => router.push('/')} className="flex flex-col items-start cursor-pointer">
+            <span className="font-black text-3xl tracking-tighter leading-none">CASE</span>
+            <span className="text-[10px] font-bold text-orange-500 uppercase tracking-widest">Construction India</span>
+          </button>
+          <div className="hidden md:flex gap-10 text-[11px] font-bold uppercase tracking-widest text-slate-400">
+            <a href="#about" className="hover:text-orange-500 transition-colors">About</a>
+            <a href="#fleet" className="hover:text-orange-500 transition-colors">Fleet</a>
+            <a href="#refurbish" className="hover:text-orange-500 transition-colors">Refurbish</a>
+            <a href="#contact" className="hover:text-orange-500 transition-colors">Contact</a>
+          </div>
+          <button className="bg-orange-600 text-white px-8 py-3 font-bold text-xs uppercase tracking-widest hover:bg-white hover:text-slate-900 transition-all rounded-sm">
+            Get Quote
+          </button>
+        </div>
       </nav>
 
-      {/* 2. HERO SECTION */}
-      <section className="min-h-screen flex flex-col justify-center items-center relative pt-20">
-        <div className="absolute inset-0 z-0 overflow-hidden">
-             <div className="absolute inset-0 opacity-[0.05]" 
-                  style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-             <motion.div 
-               initial={{ opacity: 0, scale: 1.1 }}
-               animate={{ opacity: 0.1, scale: 1 }}
-               transition={{ duration: 2 }}
-               className="w-full h-full bg-[url('https://images.unsplash.com/photo-1581094288338-2314dddb7ec3?auto=format&fit=crop&q=80')] bg-cover bg-center grayscale" 
-             />
+      {/* 2. DESIRABLE HERO - INDUSTRIAL POWER */}
+      <section className="relative min-h-[90vh] flex items-center bg-slate-900 overflow-hidden">
+        <div className="absolute inset-0 opacity-40">
+            <Image 
+              src="/images/fleet/770NX_96x49-01 (1).jpg" 
+              alt="Hero Background" 
+              fill 
+              className="object-cover grayscale"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/80 to-transparent" />
         </div>
-
-        <div className="relative z-10 text-center px-6">
-          <motion.span 
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            className="text-orange-600 font-mono text-[11px] uppercase tracking-[0.8em] mb-8 block font-bold"
-          >
-            Engineering Legacy since 1842
-          </motion.span>
-          <motion.h1 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            className="text-[14vw] font-black text-black leading-[0.8] tracking-tighter uppercase mb-12"
-          >
-            BORN <br/> <span className="italic text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-zinc-400">TO BUILD.</span>
-          </motion.h1>
-          <motion.div animate={{ y: [0, 10, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="font-mono text-[10px] uppercase tracking-widest text-zinc-300">Scroll to Deploy ↓</motion.div>
+        
+        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
+          <div className="max-w-3xl">
+            <motion.span 
+              initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+              className="bg-orange-600 text-white px-4 py-1 text-[10px] font-black uppercase tracking-[0.3em] mb-8 inline-block"
+            >
+              Engineering Excellence since 1842
+            </motion.span>
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              className="text-6xl md:text-8xl font-black text-white leading-[0.9] uppercase tracking-tighter mb-8"
+            >
+              Built for <br/> <span className="text-orange-500 italic">The Bold.</span>
+            </motion.h1>
+            <p className="text-slate-300 text-xl md:text-2xl mb-12 font-medium max-w-xl leading-relaxed">
+              Dominate the job site with precision-engineered machinery designed for India's toughest terrains. 
+            </p>
+            <div className="flex flex-wrap gap-6">
+              <a href="#fleet" className="bg-orange-600 text-white px-12 py-5 font-black text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-all shadow-xl shadow-orange-600/20">Explore Catalog</a>
+              <a href="#refurbish" className="border-2 border-white/20 text-white px-12 py-5 font-black text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-all">Service Center</a>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* 3. HERITAGE BENTO */}
-      <section id="heritage" className="py-32 px-6 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 bg-zinc-50 rounded-[3rem] p-16 flex flex-col justify-between border border-zinc-100 min-h-[450px]">
-             <span className="text-zinc-300 font-mono text-sm uppercase">01 // The Facility</span>
-             <div>
-                <h2 className="text-5xl font-bold tracking-tighter uppercase mb-6">Pithampur: <br/> The Global Engine.</h2>
-                <p className="text-zinc-500 text-lg max-w-md font-light leading-relaxed">Our state-of-the-art manufacturing plant in Madhya Pradesh serves as a vital hub for the "Make in India" initiative, exporting precision machinery to over 75 countries.</p>
-             </div>
-          </div>
-          <div className="bg-orange-50 rounded-[3rem] p-12 flex flex-col justify-center items-center border border-orange-100 text-center group shadow-sm">
-             <div className="w-20 h-20 rounded-full border border-orange-200 flex items-center justify-center mb-6 group-hover:bg-orange-500 transition-colors duration-500">
-                <span className="text-orange-600 group-hover:text-white font-bold">180+</span>
-             </div>
-             <p className="font-mono text-[10px] uppercase tracking-widest text-orange-600 font-bold mb-2">Years Excellence</p>
-             <p className="text-zinc-400 text-xs">Global heritage localized for the Indian frontier.</p>
+      {/* 3. ABOUT US - BENTO GRID */}
+      <section id="about" className="py-32 px-6 bg-slate-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="md:col-span-2 bg-white p-16 rounded-3xl border border-slate-200 flex flex-col justify-between shadow-sm">
+                <div>
+                  <h2 className="text-5xl font-black uppercase tracking-tighter mb-8">Pithampur: <br/> The Heart of Production.</h2>
+                  <p className="text-slate-600 text-lg font-medium leading-relaxed max-w-lg">
+                    Our state-of-the-art manufacturing facility in Madhya Pradesh is a benchmark for "Make in India." We engineer precision machinery that empowers national infrastructure and exports to 75+ countries.
+                  </p>
+                </div>
+                <div className="mt-12 flex gap-12">
+                   <div>
+                     <p className="text-4xl font-black text-orange-600">180+</p>
+                     <p className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">Years of Legacy</p>
+                   </div>
+                   <div>
+                     <p className="text-4xl font-black text-slate-900">75+</p>
+                     <p className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">Global Markets</p>
+                   </div>
+                </div>
+            </div>
+            <div className="bg-slate-900 text-white p-12 rounded-3xl flex flex-col justify-center items-center text-center">
+                <div className="w-20 h-20 bg-orange-600 rounded-full flex items-center justify-center mb-8 shadow-2xl shadow-orange-600/40">
+                  <span className="text-2xl font-black italic">!</span>
+                </div>
+                <h3 className="text-2xl font-black uppercase mb-4 tracking-tighter">Reliability <br/> Guaranteed.</h3>
+                <p className="text-slate-400 text-sm font-medium">Every CASE machine undergoes rigorous testing in 45°C+ heat to ensure maximum uptime.</p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* 4. FLEET SECTION */}
-      <section id="fleet" className="py-40 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
-            <h2 className="text-7xl font-black uppercase tracking-tighter leading-none">The <br/> Fleet.</h2>
-            <p className="text-zinc-400 font-mono text-[10px] uppercase tracking-widest max-w-xs border-l border-zinc-100 pl-6 font-bold leading-relaxed">
-              Next-Gen machinery engineered for maximum uptime and structural integrity.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-4">
-            {[
-              { id: '01', title: 'Backhoe Loaders', key: 'backhoe', desc: 'Industry-leading utility for diverse digging and loading tasks.' },
-              { id: '02', title: 'Compactors', key: 'compactors', desc: 'Precision soil and asphalt rollers for road construction.' },
-              { id: '03', title: 'Crawler Excavators', key: 'excavators', desc: 'Heavy-duty performance with advanced hydraulic intelligence.' },
-              { id: '04', title: 'Crawler Dozers', key: 'dozers', desc: 'High-torque surface mastery for large-scale earthmoving.' }
-            ].map((section) => (
-              <div key={section.id} className="w-full">
-                <motion.div 
-                  onClick={() => setActiveCategory(activeCategory === section.key ? null : section.key)}
-                  whileHover={{ x: activeCategory === section.key ? 0 : 10 }}
-                  className={`group flex flex-col md:flex-row justify-between items-start md:items-center p-12 rounded-[2.5rem] border transition-all duration-500 cursor-pointer ${
-                    activeCategory === section.key ? 'bg-black border-black mb-4' : 'bg-zinc-50 border-zinc-100 hover:bg-zinc-100 shadow-sm shadow-black/5'
+      <section id="fleet" className="py-32 px-6 max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
+            <h2 className="text-6xl font-black uppercase tracking-tighter leading-none">The <br/> Fleet.</h2>
+            <div className="flex gap-4 flex-wrap">
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveTab(cat.id)}
+                  className={`px-6 py-3 font-bold text-[10px] uppercase tracking-widest border-2 transition-all ${
+                    activeTab === cat.id 
+                    ? 'bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-600/20' 
+                    : 'bg-white border-slate-200 text-slate-500 hover:border-slate-900 hover:text-slate-900'
                   }`}
                 >
-                  <div className="flex flex-col md:flex-row md:items-center gap-8 md:gap-16">
-                    <span className={`font-mono text-xs font-bold transition-colors ${activeCategory === section.key ? 'text-orange-500' : 'text-orange-600'}`}>
-                      {section.id} //
-                    </span>
-                    <div>
-                      <h3 className={`text-3xl md:text-4xl font-bold uppercase tracking-tighter transition-colors ${activeCategory === section.key ? 'text-white' : 'text-black'}`}>
-                        {section.title}
-                      </h3>
-                      <p className={`text-xs font-mono uppercase tracking-widest mt-2 transition-colors ${activeCategory === section.key ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                        {section.desc}
-                      </p>
-                    </div>
-                  </div>
-                  <motion.div animate={{ rotate: activeCategory === section.key ? 180 : 0 }} className={`w-10 h-10 rounded-full border flex items-center justify-center transition-colors ${activeCategory === section.key ? 'border-orange-500' : 'border-zinc-200'}`}>
-                    <span className={activeCategory === section.key ? 'text-orange-500' : 'text-zinc-400'}>↓</span>
-                  </motion.div>
-                </motion.div>
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+        </div>
 
-                <AnimatePresence mode="wait">
-                  {activeCategory === section.key && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden bg-zinc-50 rounded-[2.5rem] border border-zinc-100 mb-8">
-                      <div className="p-8 md:p-16 space-y-32">
-                        {(fleetData[section.key as keyof typeof fleetData] as any[]).map((model, i) => (
-                          <div key={i} className="pb-20 border-b border-zinc-200 last:border-0 last:pb-0">
-                            {model.series && <p className="text-orange-600 font-mono text-[10px] uppercase font-bold mb-8">Series // {model.series}</p>}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-                                {/* IMAGE SECTION - Grayscale removed, now always colorful */}
-                                <div className="aspect-video bg-zinc-200 rounded-[2rem] overflow-hidden relative border border-zinc-300 shadow-inner group">
-                                   {model.image ? (
-                                     <Image 
-                                       src={model.image} 
-                                       alt={model.name} 
-                                       fill 
-                                       className="object-cover transition-transform duration-700 ease-in-out scale-100 group-hover:scale-105" // Grayscale classes removed
-                                     />
-                                   ) : (
-                                     <div className="h-full flex items-center justify-center text-zinc-400 font-mono text-[10px] uppercase tracking-widest bg-zinc-100">Visual Coming Soon</div>
-                                   )}
-                                </div>
-                                <div>
-                                  <div className="flex justify-between items-center mb-6">
-                                    <h4 className="text-4xl font-black uppercase tracking-tighter text-black">{model.name}</h4>
-                                    <div className="h-px flex-1 bg-zinc-200 mx-6"></div>
-                                    <span className="font-mono text-orange-600 text-[10px] uppercase font-bold tracking-widest">NX Series</span>
-                                  </div>
-                                  <p className="text-zinc-600 font-medium text-lg leading-relaxed mb-10">{model.desc}</p>
-                                  <div className="grid grid-cols-2 gap-6 mb-12">
-                                    <div className="p-8 bg-white border border-zinc-100 rounded-3xl shadow-sm">
-                                      <p className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest mb-2 font-bold">Engine Power</p>
-                                      <p className="text-xl font-bold text-zinc-900">{model.specs.engine}</p>
-                                    </div>
-                                    <div className="p-8 bg-white border border-zinc-100 rounded-3xl shadow-sm">
-                                      <p className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest mb-2 font-bold">Op. Weight</p>
-                                      <p className="text-xl font-bold text-zinc-900">{model.specs.weight}</p>
-                                    </div>
-                                    {model.specs.extra && (
-                                        <div className="col-span-2 p-8 bg-white border border-zinc-100 rounded-3xl shadow-sm">
-                                            <p className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest mb-2 font-bold">Category Specs</p>
-                                            <p className="text-xl font-bold text-orange-600">{model.specs.extra}</p>
-                                        </div>
-                                    )}
-                                  </div>
-                                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-12">
-                                    {model.highlights.map((h: string, idx: number) => (
-                                      <li key={idx} className="flex items-center gap-4 text-sm text-zinc-800 font-bold">
-                                        <div className="w-1.5 h-1.5 bg-orange-600 rounded-full shrink-0"></div> {h}
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {fleetData[activeTab as keyof typeof fleetData].map((model, i) => (
+            <motion.div 
+              layout key={i}
+              className="bg-white border-2 border-slate-100 hover:border-orange-500 transition-all group overflow-hidden"
+            >
+              <div className="relative aspect-[4/3] overflow-hidden">
+                <Image src={model.image} alt={model.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
               </div>
-            ))}
-          </div>
+              <div className="p-8">
+                <h4 className="text-2xl font-black uppercase text-slate-900 mb-2 tracking-tighter">{model.name}</h4>
+                <p className="text-slate-500 text-sm mb-8 font-medium">{model.desc}</p>
+                <div className="flex gap-4 border-t border-slate-100 pt-6">
+                  <div className="flex-1">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Engine</p>
+                    <p className="font-black text-slate-900 uppercase">{model.hp}</p>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Weight</p>
+                    <p className="font-black text-slate-900 uppercase">{model.weight}</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
         </div>
       </section>
 
-      {/* 5. REFURBISH FORM */}
-      <section id="refurbish" className="py-40 bg-zinc-50 border-y border-zinc-100">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-orange-600 font-mono text-[10px] uppercase tracking-[0.5em] mb-8">Service // Refurbishment</p>
-          <h2 className="text-6xl font-black uppercase tracking-tighter mb-16">Extend Your <br/> Machine Lifecycle.</h2>
-          <div className="bg-white rounded-[3rem] p-8 md:p-16 shadow-2xl shadow-black/[0.02] border border-zinc-100 text-left">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-               <div className="space-y-8">
-                  <div className="border-b border-zinc-100 pb-4">
-                    <label className="text-[10px] font-mono uppercase text-zinc-400">Machine Model</label>
-                    <input type="text" placeholder="e.g. 770 EX" className="w-full bg-transparent outline-none text-xl pt-2 placeholder:text-zinc-200 font-light" />
-                  </div>
-                  <div className="border-b border-zinc-100 pb-4">
-                    <label className="text-[10px] font-mono uppercase text-zinc-400">Hours Used</label>
-                    <input type="text" placeholder="Approx hrs" className="w-full bg-transparent outline-none text-xl pt-2 placeholder:text-zinc-200 font-light" />
-                  </div>
-               </div>
-               <div className="flex flex-col justify-end">
-                  <p className="text-zinc-400 text-sm mb-8 font-medium">Restore your machinery to factory-spec performance using 100% genuine parts.</p>
-                  <button className="w-full py-6 bg-orange-600 text-white rounded-2xl font-mono text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-lg shadow-orange-600/20 cursor-pointer">Submit Inquiry _</button>
-               </div>
+      {/* 5. REFURBISHING FORM - INDUSTRIAL SPEC */}
+      <section id="refurbish" className="py-32 px-6 bg-slate-100 border-y border-slate-200">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <span className="text-orange-600 font-black text-[10px] uppercase tracking-[0.4em] mb-4 block">Certified Service</span>
+              <h2 className="text-5xl font-black uppercase tracking-tighter leading-none mb-8">Extend your <br/> Machine life.</h2>
+              <p className="text-slate-600 text-lg font-medium leading-relaxed mb-10">
+                Give your legacy CASE machinery a second life with our Factory-spec Refurbishment Program. We restore your fleet to zero-hour performance using 100% genuine parts.
+              </p>
+              <div className="space-y-4">
+                 {['100% Genuine Parts', 'Factory Certified Engineers', 'Extended Warranty Options'].map((item) => (
+                    <div key={item} className="flex items-center gap-3 font-bold text-sm text-slate-900 uppercase">
+                       <span className="text-orange-600">✓</span> {item}
+                    </div>
+                 ))}
+              </div>
             </div>
-          </div>
+            <div className="bg-white p-12 rounded-3xl shadow-2xl shadow-slate-900/5 border border-slate-200">
+               <form className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <input type="text" placeholder="Machine Model" className="w-full bg-slate-50 border border-slate-200 p-4 font-bold text-xs outline-none focus:border-orange-600" />
+                    <input type="text" placeholder="Hours Logged" className="w-full bg-slate-50 border border-slate-200 p-4 font-bold text-xs outline-none focus:border-orange-600" />
+                  </div>
+                  <input type="text" placeholder="Serial Number (Optional)" className="w-full bg-slate-50 border border-slate-200 p-4 font-bold text-xs outline-none focus:border-orange-600" />
+                  <button className="w-full bg-slate-900 text-white py-5 font-black uppercase text-[10px] tracking-widest hover:bg-orange-600 transition-colors">Request Inspection _</button>
+               </form>
+            </div>
         </div>
       </section>
 
-      {/* 6. CONTACT SECTION */}
-      <section id="contact" className="py-40 bg-[#0a0a0a] px-8 relative overflow-hidden text-white rounded-t-[4rem]">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-32 items-center">
-          <div>
-            <h2 className="text-[10vw] lg:text-8xl font-black tracking-tighter uppercase mb-12 text-white">Talk to <br/> Expert.</h2>
+      {/* 6. CONTACT SECTION - DARK SPEC */}
+      <section id="contact" className="py-32 px-6 bg-slate-900">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-24 items-start">
+          <div className="text-white">
+            <h2 className="text-7xl font-black uppercase tracking-tighter leading-[0.85] mb-12">Connect <br/> with Experts.</h2>
             <div className="space-y-12">
-                <p className="text-zinc-500 font-mono text-xs uppercase tracking-widest font-bold mb-2 underline decoration-orange-600">Transmission</p>
-                <p className="text-2xl font-light">fleet.support@caseindia.com</p>
+               <div>
+                  <p className="text-orange-500 font-black uppercase text-[10px] tracking-widest mb-4">India Headquarters</p>
+                  <p className="text-3xl font-light text-slate-300">New Delhi / Pithampur</p>
+               </div>
+               <div>
+                  <p className="text-orange-500 font-black uppercase text-[10px] tracking-widest mb-4">Toll Free Support</p>
+                  <p className="text-4xl font-black text-white">1800-419-7777</p>
+               </div>
+               <div>
+                  <p className="text-orange-500 font-black uppercase text-[10px] tracking-widest mb-4">Email Inquiry</p>
+                  <p className="text-2xl font-bold text-slate-300 underline decoration-orange-600 underline-offset-8">fleet.support@caseindia.com</p>
+               </div>
             </div>
           </div>
-          <div className="bg-white p-12 md:p-16 rounded-[3.5rem] shadow-2xl border border-white/10">
-            <form className="flex flex-col gap-10">
-              <input type="text" placeholder="Full Name" className="w-full bg-zinc-50 border-b-2 border-zinc-200 p-6 outline-none text-zinc-900 font-bold placeholder:text-zinc-300" />
-              <textarea rows={3} placeholder="Project Vision" className="w-full bg-zinc-50 border-b-2 border-zinc-200 p-6 outline-none text-zinc-900 font-bold placeholder:text-zinc-300 resize-none" />
-              <button className="w-full py-8 bg-orange-600 text-white rounded-2xl text-[11px] font-bold uppercase tracking-[0.5em] hover:bg-black transition-all cursor-pointer">Establish Connection _</button>
+          
+          <div className="bg-white p-12 rounded-[2rem] shadow-2xl relative overflow-hidden group">
+            <form className="relative z-10 space-y-8">
+               <h3 className="text-2xl font-black uppercase text-slate-900 border-b-4 border-orange-600 pb-4 inline-block">General Inquiry</h3>
+               <div className="space-y-4">
+                  <input type="text" placeholder="Your Name" className="w-full border-b-2 border-slate-100 p-4 font-bold outline-none focus:border-orange-600 transition-colors" />
+                  <input type="email" placeholder="Email Address" className="w-full border-b-2 border-slate-100 p-4 font-bold outline-none focus:border-orange-600 transition-colors" />
+                  <textarea rows={4} placeholder="Tell us about your project requirements" className="w-full border-b-2 border-slate-100 p-4 font-bold outline-none focus:border-orange-600 resize-none transition-colors" />
+               </div>
+               <button className="w-full bg-orange-600 text-white py-6 font-black uppercase text-xs tracking-widest hover:bg-slate-900 transition-all">Establish Connection</button>
             </form>
+            {/* Visual Industrial Accent */}
+            <div className="absolute -bottom-10 -right-10 text-[10vw] font-black text-slate-50 opacity-10 select-none">CASE</div>
           </div>
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="py-12 bg-[#0a0a0a] text-center border-t border-white/5">
-        <p className="text-zinc-600 font-bold text-[10px] uppercase tracking-[0.5em]">© 2026 CASE CONSTRUCTION // POWERED BY DESYN</p>
+      <footer className="py-12 bg-black text-center text-slate-600 text-[10px] font-black uppercase tracking-[0.5em]">
+        © 2026 CASE CONSTRUCTION INDIA // POWERED BY DESYN HUB
       </footer>
     </main>
   );
