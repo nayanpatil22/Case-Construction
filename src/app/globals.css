@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+:root {
+  /* Dynamic Background and Foreground */
+  --background: #fdfdfd; /* Off-white for warmth */
+  --foreground: #101010;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  cursor: auto;
+}
+
+/* Custom subtle noise texture for that filmic look */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3%3Ffilter id='noiseFilter'%3%3FfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3%3F/filter%3%3F%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3%3F/svg%3%3F");
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* The vertical text utility */
+.vertical-text {
+  writing-mode: vertical-lr;
+}
