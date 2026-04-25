@@ -658,8 +658,12 @@ const globalStyles = `
 `;
 
 // ─── ENQUIRY MODAL ────────────────────────────────────────────────────────────
-function EnquiryModal({ productName, onClose }) {
-  const [submitted, setSubmitted] = useState(false);
+type EnquiryModalProps = {
+  productName: string;
+  onClose: () => void;
+};
+
+function EnquiryModal({ productName, onClose }: EnquiryModalProps) {  const [submitted, setSubmitted] = useState(false);
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{ background: '#FFFFFF', width: '100%', maxWidth: '500px', borderTop: '4px solid #E55300' }}>
@@ -701,8 +705,20 @@ function EnquiryModal({ productName, onClose }) {
 }
 
 // ─── PRODUCT CARD ────────────────────────────────────────────────────────────
-function ProductCard({ product, onEnquire }) {
-  return (
+type Product = {
+  name: string;
+  shortDesc: string;
+  image: string | null;
+  highlights: string[];
+  specs: { label: string; value: string }[];
+};
+
+type ProductCardProps = {
+  product: Product;
+  onEnquire: (name: string) => void;
+};
+
+function ProductCard({ product, onEnquire }: ProductCardProps) {  return (
     <div className="product-card">
       {/* Image placeholder */}
       <div style={{ aspectRatio: '16/9', background: '#F7F7F7', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #E5E5E5' }}>
@@ -757,11 +773,11 @@ function ProductCard({ product, onEnquire }) {
 export default function GulatiCranesSite() {
   const [activeCategory, setActiveCategory] = useState('cranes');
   const [activeSubtype, setActiveSubtype] = useState('pick_and_carry');
-  const [enquiryProduct, setEnquiryProduct] = useState(null);
+  const [enquiryProduct, setEnquiryProduct] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleCategoryChange = (catKey) => {
-    setActiveCategory(catKey);
+const handleCategoryChange = (catKey: string) => {
+      setActiveCategory(catKey);
     const firstSubtype = Object.keys(fleetData[catKey].subtypes)[0];
     setActiveSubtype(firstSubtype);
   };
@@ -769,8 +785,8 @@ export default function GulatiCranesSite() {
   const currentSubtypes = fleetData[activeCategory].subtypes;
   const currentProducts = currentSubtypes[activeSubtype]?.products || [];
 
-const scrollTo = (id) => {
-    setMobileMenuOpen(false); // Close the mobile menu first
+const scrollTo = (id: string) => {
+      setMobileMenuOpen(false); // Close the mobile menu first
 
     if (id === '/') {
       window.location.href = '/'; // Redirect to root
