@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, memo, useRef, type ReactNode } from "react";
-import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion";
+import React, { useState, useEffect, memo, type ReactNode } from "react";
 
 /* ── TYPES ── */
 interface Product {
@@ -24,7 +23,96 @@ const parseSpecs = (rawSpecs: string[]): { label: string; value: string }[] =>
     return { label: label.trim(), value: rest.join(":").trim() };
   });
 
-/* ── ALL DATA (unchanged) ── */
+/* ── IMAGE MAP ── */
+/*
+  PUT ALL YOUR IMAGE FILES FLAT INSIDE:  /public/products/
+  Example: /public/products/Husqvarna SMART E.jpg
+
+  ⚠️  Three filenames below were truncated in Finder — verify & rename if needed:
+      "Husqvarna BT 90 Screed Section (Petrol/Electric Compatible)" → check actual filename
+      "Husqvarna BT 90 Screed Section (1 m / 6.5 ft)"             → check actual filename
+      "Husqvarna Screed Blades"                                    → check actual filename
+*/
+const productImages: Record<string, string> = {
+  // ── Internal Vibrators ──────────────────────────────────────────────────────
+  "Husqvarna SMART E":        "/products/Husqvarna SMART E.jpg",
+  "Husqvarna SMART":          "/products/Husqvarna SMART.png",
+  "Husqvarna AX":             "/products/Husqvarna AX.jpg",
+  "Husqvarna AX 48":          "/products/Husqvarna AX 48.jpg",
+  "Husqvarna Vibrastar":      "/products/Husqvarna Vibrastar.jpg",
+  "Husqvarna AME 600":        "/products/Husqvarna AME 600.jpg",
+  "Husqvarna AME 1490":       "/products/Husqvarna AME 1490.png",
+  "Husqvarna AME 1600":       "/products/Husqvarna AME 1600.png",
+  "Husqvarna HA":             "/products/Husqvarna HA.jpg",
+  "Husqvarna AMD 3300":       "/products/Husqvarna AMD 3300.png",
+  "Husqvarna AMG 3200":       "/products/Husqvarna AMG 3200.jpg",
+  "Husqvarna AT":             "/products/Husqvarna AT.jpg",
+  "Husqvarna Superflex":      "/products/Husqvarna Superflex.jpg",
+  "Husqvarna AA":             "/products/Husqvarna AA.png",
+  "Husqvarna AZ":             "/products/Husqvarna AZ.jpg",
+  "Husqvarna AY":             "/products/Husqvarna AY.png",
+  "Husqvarna AME 2200":       "/products/Husqvarna AME 2200.jpg",
+
+  // ── External Vibrators ──────────────────────────────────────────────────────
+  "Husqvarna EP 371 B":       "/products/Husqvarna EP 371 B.jpg",
+  "Husqvarna EP 121 B":       "/products/Husqvarna EP 121 B.png",
+  "Husqvarna ER 507 B":       "/products/Husqvarna ER 507 B.jpg",
+  "Husqvarna ER 407 B":       "/products/Husqvarna ER 407 B.png",
+  "Husqvarna ER 207 B":       "/products/Husqvarna ER 207 B.jpg",
+  "Husqvarna ER 505":         "/products/Husqvarna ER 505.jpg",
+  "Husqvarna ER 405":         "/products/Husqvarna ER 405.png",
+  "Husqvarna ER 305":         "/products/Husqvarna ER 305.jpg",
+
+  // ── Frequency Converters ────────────────────────────────────────────────────
+  "Husqvarna CF 85 AS":       "/products/Husqvarna CF 85 AS.png",
+  "Husqvarna CF 67 T":        "/products/Husqvarna CF 67 T.webp",
+  "Husqvarna CF 25 M":        "/products/Husqvarna CF 25 M.png",
+
+  // ── Walk-behind Screeds ─────────────────────────────────────────────────────
+  "Husqvarna BV 30":          "/products/Husqvarna BV 30.jpg",
+  "Husqvarna BV 20 G":        "/products/Husqvarna BV 20 G.png",
+  "Husqvarna Screed Blades":  "/products/Husqvarna Screed Blades.jpg",   // ⚠️ verify filename
+
+  // ── Truss Screeds ───────────────────────────────────────────────────────────
+  "Husqvarna BT 90":          "/products/Husqvarna BT 90.png",
+  "Husqvarna BT 90 Petrol":   "/products/Husqvarna BT 90 Petrol.jpeg",
+  "Husqvarna BT 90 Screed Section (Petrol/Electric Compatible)": "/products/Husqvarna BT 90 Screed Section (on).jpg",   // ⚠️ verify filename
+  "Husqvarna BT 90 Screed Section (1 m / 6.5 ft)":              "/products/Husqvarna BT 90 Screed Section (ft).jpg",   // ⚠️ verify filename
+
+  // ── Ride-on Trowels ─────────────────────────────────────────────────────────
+  "Husqvarna CRT 36 Ride-On Power Trowel":              "/products/Husqvarna CRT 36.png",
+
+  // ── Walk-behind Trowels ─────────────────────────────────────────────────────
+  "Husqvarna MCT 36 Walk-Behind Power Trowel":          "/products/Husqvarna MCT 36.webp",
+  "Husqvarna BG 375 Walk-Behind Power Trowel":          "/products/Husqvarna BG 375.webp",
+  "Husqvarna BG 245 Walk-Behind Edger Power Trowel":    "/products/Husqvarna BG 245.png",
+
+  // ── Rammers ─────────────────────────────────────────────────────────────────
+  "Husqvarna LT 8005 Rammer": "/products/Husqvarna LT 8005.jpg",
+  "Husqvarna LT 6005":        "/products/Husqvarna LT 6005.webp",
+  "Husqvarna LT 5005":        "/products/Husqvarna LT 5005.png",
+
+  // ── Forward Plate Compactors ────────────────────────────────────────────────
+  "Husqvarna LF 75 PACE":           "/products/Husqvarna LF 75 PACE.png",
+  "Husqvarna LF 100 PACE":          "/products/Husqvarna LF 100 PACE.jpg",
+  "Husqvarna LF 160 (Electrical)":  "/products/Husqvarna LF 160 (Electrical).jpg",
+  "Husqvarna LF 160 (Diesel)":      "/products/Husqvarna LF 160 (Diesel).jpg",
+  "Husqvarna LF 50 L":              "/products/Husqvarna LF 50 L.jpg",
+  "Husqvarna LF 60 LAT":            "/products/Husqvarna LF 60 LAT.png",
+  "Husqvarna LFV 80":               "/products/Husqvarna LFV 80.png",
+  "Husqvarna LFV 60":               "/products/Husqvarna LFV 60.webp",
+
+  // ── Reversible Plate Compactors ─────────────────────────────────────────────
+  "Husqvarna LG 400":   "/products/Husqvarna LG 400.jpg",
+  "Husqvarna LG 200":   "/products/Husqvarna LG 200.png",
+  "Husqvarna LG 200 S": "/products/Husqvarna LG 200 S.jpg",
+  "Husqvarna LH 700":   "/products/Husqvarna LH 700.jpg",
+
+  // ── Compaction Rollers ──────────────────────────────────────────────────────
+  "Husqvarna LP 6500":  "/products/Husqvarna LP 6500.jpg",
+};
+
+/* ── ALL DATA ── */
 const machineData: MachineCategory[] = [
   {
     name: "Concrete Placement",
@@ -191,1684 +279,721 @@ const salesReps: Rep[] = [
   { name: "Sonu", location: "Bhubaneswar (East)", phone: "+91 7387101711", email: "sonu.a.singh@husqvarnagroup.com", title: "RSM – Eastern India" },
 ];
 
-/* ── DESIGN TOKENS — Industrial Light / Steel Blue ── */
-const T = {
-  // Backgrounds
-  bg: "#EEF1F5",           // cool concrete light
-  bgAlt: "#E4E8EE",        // slightly darker cool surface
-  bgPanel: "#F8FAFC",      // near white panel
-  bgDark: "#111827",       // deep navy charcoal
-  bgDarkAlt: "#1A2233",    // navy alt
-  bgOrange: "#1A56A0",     // primary blue (replacing orange bg role)
-  bgOrangeHover: "#144788",
-  bgOrangeLight: "#DDEAF8",
-
-  // Text
-  ink: "#111827",          // near black ink
-  inkMid: "#2D3A4A",       // dark cool grey
-  inkDim: "#5A6880",       // muted mid
-  inkLight: "#8A98A8",     // light muted
-
-  // Accents — steel blue family
-  orange: "#1A6CB8",       // primary blue
-  orangeLight: "#2E82D4",  // lighter blue (hover)
-  orangeDim: "#124E8A",    // darker blue
-  orangePale: "#D6E8F7",   // very light blue tint
-
-  // Borders
-  rule: "rgba(17,24,39,0.10)",
-  ruleMid: "rgba(17,24,39,0.20)",
-  ruleHeavy: "rgba(17,24,39,0.38)",
-
+/* ── DESIGN TOKENS ── */
+const C = {
+  navy: "#0B1F3A",
+  orange: "#E55300",
   white: "#FFFFFF",
+  offWhite: "#F7F7F7",
+  border: "#E5E5E5",
+  text: "#111111",
+  textMid: "#444444",
+  textLight: "#777777",
 };
 
-/* ── FONTS ── */
-const FONT_DISPLAY = "'Bebas Neue', 'Impact', 'Arial Black', sans-serif";
-const FONT_BODY = "'DM Sans', 'Helvetica Neue', sans-serif";
-const FONT_MONO = "'DM Mono', 'Courier New', monospace";
+/* ── GLOBAL STYLES ── */
+const GS = `
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Barlow', sans-serif; background: ${C.white}; color: ${C.text}; }
+  input::placeholder, textarea::placeholder { color: #aaa; }
+  input:focus, textarea:focus, select:focus { border-color: ${C.navy} !important; outline: none; }
+  button, a { font-family: inherit; }
+  img { display: block; }
 
-/* ── FADE IN ── */
-const FadeIn = ({ children, delay = 0, className = "" }: { children: ReactNode; delay?: number; className?: string }) => {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
+  .btn-primary {
+    display: inline-block;
+    background: ${C.navy};
+    color: ${C.white};
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 12px 32px;
+    border: 2px solid ${C.navy};
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .btn-primary:hover { background: #071428; border-color: #071428; }
+
+  .btn-outline {
+    display: inline-block;
+    background: transparent;
+    color: ${C.white};
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 12px 32px;
+    border: 2px solid rgba(255,255,255,0.5);
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .btn-outline:hover { border-color: ${C.white}; }
+
+  .btn-orange {
+    display: inline-block;
+    background: ${C.orange};
+    color: ${C.white};
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 12px 32px;
+    border: 2px solid ${C.orange};
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .btn-orange:hover { background: #c94700; border-color: #c94700; }
+
+  .nav-link {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+  }
+  .nav-link:hover { color: ${C.white}; }
+
+  .prod-card {
+    background: ${C.white};
+    border: 1px solid ${C.border};
+    display: flex;
+    flex-direction: column;
+  }
+
+  .enquire-btn {
+    width: 100%;
+    background: ${C.navy};
+    color: ${C.white};
+    border: none;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 13px;
+    cursor: pointer;
+  }
+  .enquire-btn:hover { background: #071428; }
+
+  .inp {
+    width: 100%;
+    border: 1px solid ${C.border};
+    padding: 11px 13px;
+    font-size: 14px;
+    font-family: 'Barlow', sans-serif;
+    outline: none;
+    background: ${C.white};
+    color: ${C.text};
+    border-radius: 0;
+  }
+  .inp:focus { border-color: ${C.navy}; }
+
+  .label-sm {
+    display: block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: ${C.textLight};
+    margin-bottom: 5px;
+  }
+
+  .section-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: ${C.textLight};
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: clamp(36px, 5vw, 56px);
+    text-transform: uppercase;
+    color: ${C.text};
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+
+  .rep-card {
+    background: ${C.white};
+    border: 1px solid ${C.border};
+    padding: 20px 22px;
+  }
+  .rep-card:hover { border-color: #bbb; }
+
+  @media (max-width: 767px) {
+    .hide-mobile { display: none !important; }
+    .mob-col { grid-template-columns: 1fr !important; }
+    .mob-full { padding-left: 20px !important; padding-right: 20px !important; }
+    .hero-h { font-size: 52px !important; }
+    .footer-grid { grid-template-columns: 1fr 1fr !important; }
+  }
+`;
+
+/* ── ENQUIRY MODAL ── */
+const EnquiryModal = ({ productName, onClose }: { productName: string; onClose: () => void }) => {
+  const [submitted, setSubmitted] = useState(false);
+
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 28 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
-      className={className}
-    >
-      {children}
-    </motion.div>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 600, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: C.white, width: "100%", maxWidth: 520, maxHeight: "90vh", overflowY: "auto", borderTop: `4px solid ${C.navy}` }}>
+        <div style={{ background: C.navy, padding: "22px 26px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div>
+            <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>Product Enquiry</p>
+            <h3 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: 20, textTransform: "uppercase", color: C.white }}>{productName}</h3>
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 20, cursor: "pointer", lineHeight: 1 }}>✕</button>
+        </div>
+
+        {submitted ? (
+          <div style={{ textAlign: "center", padding: "48px 32px" }}>
+            <div style={{ width: 52, height: 52, background: C.navy, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: C.white, fontSize: 22 }}>✓</div>
+            <h4 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 22, fontWeight: 800, textTransform: "uppercase", color: C.text, marginBottom: 10 }}>Enquiry Submitted</h4>
+            <p style={{ fontSize: 14, color: C.textLight, lineHeight: 1.7, marginBottom: 28 }}>Thank you for your interest in {productName}. Our team will contact you shortly.</p>
+            <button onClick={onClose} className="btn-primary">Close</button>
+          </div>
+        ) : (
+          <div style={{ padding: "26px 26px 30px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+              <div>
+                <label className="label-sm">Full Name *</label>
+                <input type="text" placeholder="Your name" className="inp" />
+              </div>
+              <div>
+                <label className="label-sm">Phone *</label>
+                <input type="tel" placeholder="+91 XXXXX XXXXX" className="inp" />
+              </div>
+            </div>
+            <div style={{ marginBottom: 14 }}>
+              <label className="label-sm">Email *</label>
+              <input type="email" placeholder="you@company.com" className="inp" />
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+              <div>
+                <label className="label-sm">Company</label>
+                <input type="text" placeholder="Company name" className="inp" />
+              </div>
+              <div>
+                <label className="label-sm">City</label>
+                <input type="text" placeholder="Your city" className="inp" />
+              </div>
+            </div>
+            <div style={{ marginBottom: 22 }}>
+              <label className="label-sm">Message</label>
+              <textarea rows={3} placeholder="Tell us about your requirement..." className="inp" style={{ resize: "none" }} />
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={onClose} style={{ flex: 1, padding: 12, fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 700, fontSize: 12, letterSpacing: "0.05em", textTransform: "uppercase", background: "none", border: `1px solid ${C.border}`, color: C.textLight, cursor: "pointer" }}>Cancel</button>
+              <button onClick={() => setSubmitted(true)} className="enquire-btn" style={{ flex: 2 }}>Send Enquiry</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
-/* ── LABEL TAG ── */
-const Eyebrow = ({ children }: { children: ReactNode }) => (
-  <div style={{
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "10px",
-    marginBottom: "20px",
-  }}>
-    <div style={{ width: "24px", height: "2px", background: T.orange }} />
-    <span style={{
-      fontFamily: FONT_BODY,
-      fontSize: "10px",
-      fontWeight: 700,
-      letterSpacing: "0.22em",
-      textTransform: "uppercase",
-      color: T.orange,
-    }}>{children}</span>
-  </div>
-);
-
 /* ── PRODUCT CARD ── */
-const ProductCard = memo(({ product, index }: { product: Product; index: number }) => {
-  const [hovered, setHovered] = useState(false);
-  const specs = parseSpecs(product.specs);
+const ProductCard = memo(({ product, onEnquire }: { product: Product; onEnquire: (name: string) => void }) => {
+  const specs = parseSpecs(product.specs).slice(0, 3);
+  const imgSrc = productImages[product.name];
+  const [imgError, setImgError] = useState(false);
+
   return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background: T.bgPanel,
-        border: `1px solid ${hovered ? T.orange : T.rule}`,
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        transition: "border-color 0.2s, box-shadow 0.2s",
-        boxShadow: hovered ? "4px 4px 0px " + T.orange : "2px 2px 0px rgba(0,0,0,0.06)",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* Number badge */}
+    <div className="prod-card">
+      {/* Image area */}
       <div style={{
-        position: "absolute",
-        top: "16px",
-        right: "16px",
-        fontFamily: FONT_MONO,
-        fontSize: "9px",
-        fontWeight: 500,
-        letterSpacing: "0.12em",
-        color: T.inkLight,
-      }}>{String(index + 1).padStart(2, "0")}</div>
+        aspectRatio: "4/3",
+        background: C.offWhite,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderBottom: `1px solid ${C.border}`,
+        overflow: "hidden",
+      }}>
+        {imgSrc && !imgError ? (
+          <img
+            src={imgSrc}
+            alt={product.name}
+            onError={() => setImgError(true)}
+            style={{ width: "100%", height: "100%", objectFit: "contain", padding: "16px" }}
+          />
+        ) : (
+          /* Fallback placeholder shown when no image path or image fails to load */
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 56, height: 56, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.5">
+                <rect x="2" y="7" width="20" height="14" rx="0" />
+                <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" />
+                <line x1="12" y1="12" x2="12" y2="16" />
+                <line x1="10" y1="14" x2="14" y2="14" />
+              </svg>
+            </div>
+            <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#bbb" }}>Husqvarna</p>
+          </div>
+        )}
+      </div>
 
-      {/* Orange top bar */}
-      <div style={{ height: "3px", background: hovered ? T.orange : T.rule, transition: "background 0.2s", flexShrink: 0 }} />
-
-      <div style={{ padding: "24px", flexGrow: 1, display: "flex", flexDirection: "column", gap: "18px" }}>
-        <div>
-          <h4 style={{
-            fontFamily: FONT_BODY,
-            fontSize: "14px",
-            fontWeight: 700,
-            color: T.ink,
-            margin: "0 0 8px",
-            lineHeight: 1.3,
-            paddingRight: "28px",
-          }}>
-            {product.name}
-          </h4>
-          <p style={{ fontFamily: FONT_BODY, fontSize: "12px", color: T.inkDim, margin: 0, lineHeight: 1.75 }}>
-            {product.description}
-          </p>
-        </div>
+      {/* Body */}
+      <div style={{ padding: "20px 20px 22px", display: "flex", flexDirection: "column", flexGrow: 1 }}>
+        <h4 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 17, fontWeight: 800, textTransform: "uppercase", color: C.text, marginBottom: 8, lineHeight: 1.1 }}>{product.name}</h4>
+        <p style={{ fontSize: 13, color: C.textMid, lineHeight: 1.65, marginBottom: 16 }}>{product.description}</p>
 
         {specs.length > 0 && (
-          <div>
-            <p style={{
-              fontFamily: FONT_MONO,
-              fontSize: "8.5px",
-              fontWeight: 500,
-              letterSpacing: "0.18em",
-              textTransform: "uppercase",
-              color: T.orange,
-              margin: "0 0 8px",
-            }}>Specifications</p>
-            <div style={{ borderTop: `1px solid ${T.rule}` }}>
+          <div style={{ marginBottom: 16 }}>
+            <p className="section-label">Key Specs</p>
+            <div style={{ border: `1px solid ${C.border}` }}>
               {specs.map((s, i) => (
-                <div key={i} style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  padding: "6px 0",
-                  borderBottom: `1px solid ${T.rule}`,
-                  gap: "12px",
-                }}>
-                  <span style={{ fontFamily: FONT_BODY, fontSize: "11px", color: T.inkDim }}>{s.label}</span>
-                  <span style={{ fontFamily: FONT_MONO, fontSize: "11px", color: T.ink, fontWeight: 500, textAlign: "right" }}>{s.value}</span>
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderBottom: i < specs.length - 1 ? `1px solid ${C.border}` : "none", background: i % 2 === 0 ? C.offWhite : C.white }}>
+                  <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: C.textLight }}>{s.label}</p>
+                  <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 14, fontWeight: 700, color: C.text }}>{s.value}</p>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        <div>
-          <p style={{
-            fontFamily: FONT_MONO,
-            fontSize: "8.5px",
-            fontWeight: 500,
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            color: T.orange,
-            margin: "0 0 8px",
-          }}>Key Features</p>
-          <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "5px" }}>
-            {product.features.map((f, i) => (
-              <li key={i} style={{
-                display: "flex",
-                gap: "8px",
-                fontFamily: FONT_BODY,
-                fontSize: "11.5px",
-                color: T.inkMid,
-                alignItems: "flex-start",
-              }}>
-                <span style={{
-                  width: "4px",
-                  height: "4px",
-                  background: T.orange,
-                  borderRadius: "0",
-                  flexShrink: 0,
-                  marginTop: "6px",
-                }} />
-                {f}
-              </li>
-            ))}
-          </ul>
+        {product.useCase && (
+          <div style={{ marginBottom: 18, padding: "10px 12px", background: C.offWhite, borderLeft: `3px solid ${C.navy}` }}>
+            <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: C.navy, marginBottom: 3 }}>Application</p>
+            <p style={{ fontSize: 12, color: C.textMid, lineHeight: 1.6 }}>{product.useCase}</p>
+          </div>
+        )}
+
+        <div style={{ marginTop: "auto" }}>
+          <button onClick={() => onEnquire(product.name)} className="enquire-btn">Enquire Now</button>
         </div>
       </div>
-
-      {product.useCase && (
-        <div style={{
-          padding: "12px 24px",
-          background: T.orangePale,
-          borderTop: `1px solid rgba(212,90,26,0.2)`,
-        }}>
-          <p style={{
-            fontFamily: FONT_MONO,
-            fontSize: "8px",
-            fontWeight: 500,
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            color: T.orangeDim,
-            margin: "0 0 3px",
-          }}>Application</p>
-          <p style={{ fontFamily: FONT_BODY, fontSize: "11.5px", color: T.inkMid, margin: 0, lineHeight: 1.6 }}>
-            {product.useCase}
-          </p>
-        </div>
-      )}
     </div>
   );
 });
 ProductCard.displayName = "ProductCard";
 
-/* ── ACCORDION ── */
-const Accordion = ({ title, count, children }: { title: string; count?: string; children: ReactNode }) => {
-  const [open, setOpen] = useState(false);
+/* ── PRODUCTS SECTION (4-level hierarchy) ── */
+const ProductsSection = ({ onEnquire }: { onEnquire: (name: string) => void }) => {
+  const [activeCat, setActiveCat] = useState(0);
+  const [activeSub, setActiveSub] = useState(0);
+  const [activeGroup, setActiveGroup] = useState(0);
+
+  const cat = machineData[activeCat];
+  const sub = cat.subcategories[activeSub];
+  const groups = sub.groups || [];
+  const group = groups[activeGroup];
+  const products = group ? group.items : (sub.items || []);
+
+  const handleCat = (i: number) => { setActiveCat(i); setActiveSub(0); setActiveGroup(0); };
+  const handleSub = (i: number) => { setActiveSub(i); setActiveGroup(0); };
+
   return (
-    <div style={{ borderBottom: `1px solid ${T.rule}` }}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          width: "100%",
-          background: open ? T.bgOrangeLight : "transparent",
-          border: "none",
-          cursor: "pointer",
-          padding: "18px 0",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: "16px",
-          textAlign: "left",
-          transition: "background 0.2s",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <span style={{
-            fontFamily: FONT_BODY,
-            fontSize: "13px",
-            fontWeight: 600,
-            color: open ? T.orange : T.ink,
-            letterSpacing: "0.01em",
-            transition: "color 0.2s",
-          }}>{title}</span>
-          {count && (
-            <span style={{
-              fontFamily: FONT_MONO,
-              fontSize: "9px",
-              color: T.white,
-              background: open ? T.orange : T.inkLight,
-              padding: "2px 8px",
-              transition: "background 0.2s",
-            }}>{count}</span>
-          )}
+    <section id="machines" style={{ background: C.white, borderTop: `1px solid ${C.border}` }}>
+      <div style={{ background: C.navy, padding: "48px 48px 40px" }}>
+        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+          <span className="section-label" style={{ color: "rgba(255,255,255,0.4)" }}>Our Equipment</span>
+          <h2 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: "clamp(36px,5vw,60px)", textTransform: "uppercase", color: C.white, lineHeight: 1, marginBottom: 12 }}>The Products.</h2>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", maxWidth: 480, lineHeight: 1.65 }}>Comprehensive range of heavy-duty construction machinery — from precision concrete placement to heavy compaction.</p>
         </div>
-        <motion.div
-          animate={{ rotate: open ? 45 : 0 }}
-          transition={{ duration: 0.2 }}
-          style={{
-            width: "28px",
-            height: "28px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: open ? T.orange : "transparent",
-            border: `1px solid ${open ? T.orange : T.ruleMid}`,
-            color: open ? T.white : T.inkMid,
-            fontSize: "18px",
-            lineHeight: 1,
-            flexShrink: 0,
-            transition: "background 0.2s, border-color 0.2s, color 0.2s",
-          }}
-        >+</motion.div>
-      </button>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            key="body"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.32, ease: "easeInOut" }}
-            style={{ overflow: "hidden" }}
-          >
-            <div style={{ paddingBottom: "28px", paddingTop: "8px" }}>{children}</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+      </div>
+
+      <div style={{ background: "#0a1b30", borderBottom: `1px solid rgba(255,255,255,0.06)` }}>
+        <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 48px", display: "flex", alignItems: "center" }}>
+          <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginRight: 24, whiteSpace: "nowrap" }}>Category</span>
+          <div style={{ display: "flex", flexWrap: "wrap" }}>
+            {machineData.map((c, i) => (
+              <button key={i} onClick={() => handleCat(i)} style={{
+                fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: "0.04em",
+                textTransform: "uppercase", padding: "16px 24px", border: "none", cursor: "pointer",
+                background: activeCat === i ? C.white : "transparent",
+                color: activeCat === i ? C.navy : "rgba(255,255,255,0.45)",
+                borderRight: `1px solid rgba(255,255,255,0.05)`,
+              }}>
+                {c.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ background: C.navy, borderBottom: `1px solid rgba(255,255,255,0.06)` }}>
+        <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 48px", display: "flex", alignItems: "center" }}>
+          <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)", marginRight: 24, whiteSpace: "nowrap" }}>Type</span>
+          <div style={{ display: "flex", flexWrap: "wrap" }}>
+            {cat.subcategories.map((s, i) => (
+              <button key={i} onClick={() => handleSub(i)} style={{
+                fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: "0.04em",
+                textTransform: "uppercase", padding: "13px 20px", border: "none", cursor: "pointer",
+                background: "transparent",
+                color: activeSub === i ? C.white : "rgba(255,255,255,0.4)",
+                borderBottom: activeSub === i ? `2px solid ${C.white}` : "2px solid transparent",
+                borderRight: `1px solid rgba(255,255,255,0.05)`,
+              }}>
+                {s.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {groups.length > 0 && (
+        <div style={{ background: "#f0f0f0", borderBottom: `1px solid ${C.border}` }}>
+          <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 48px", display: "flex", alignItems: "center" }}>
+            <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: C.textLight, marginRight: 24, whiteSpace: "nowrap" }}>Group</span>
+            <div style={{ display: "flex", flexWrap: "wrap" }}>
+              {groups.map((g, i) => (
+                <button key={i} onClick={() => setActiveGroup(i)} style={{
+                  fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: "0.04em",
+                  textTransform: "uppercase", padding: "12px 18px", border: "none", cursor: "pointer",
+                  background: "transparent",
+                  color: activeGroup === i ? C.navy : C.textLight,
+                  borderBottom: activeGroup === i ? `2px solid ${C.navy}` : "2px solid transparent",
+                  borderRight: `1px solid ${C.border}`,
+                }}>
+                  {g.name.replace(/\s*\(\d+\)$/, "")}
+                  {g.name.match(/\((\d+)\)$/) && (
+                    <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color: activeGroup === i ? C.navy : "#aaa" }}>
+                      ({g.name.match(/\((\d+)\)$/)?.[1]})
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div style={{ background: C.offWhite, padding: "40px 48px 64px" }}>
+        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28, paddingBottom: 16, borderBottom: `1px solid ${C.border}` }}>
+            <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: C.textMid }}>
+              {groups.length > 0 ? group?.name.replace(/\s*\(\d+\)$/, "") : sub.name}
+            </span>
+            <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 11, fontWeight: 700, background: C.navy, color: C.white, padding: "2px 8px" }}>
+              {products.length} Products
+            </span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
+            {products.map((p, i) => (
+              <ProductCard key={`${p.name}-${i}`} product={p} onEnquire={onEnquire} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 };
 
 /* ── CONTACT FORM ── */
-const ContactForm = () => {
-  const fieldStyle: React.CSSProperties = {
-    width: "100%",
-    background: T.bgPanel,
-    border: "none",
-    borderBottom: `2px solid ${T.ruleMid}`,
-    color: T.ink,
-    fontSize: "14px",
-    padding: "14px 0",
-    outline: "none",
-    fontFamily: FONT_BODY,
-    transition: "border-color 0.2s",
-    boxSizing: "border-box",
-  };
-  const labelStyle: React.CSSProperties = {
-    fontFamily: FONT_MONO,
-    display: "block",
-    fontSize: "9px",
-    fontWeight: 500,
-    letterSpacing: "0.2em",
-    textTransform: "uppercase",
-    color: T.inkDim,
-    marginBottom: "6px",
-  };
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
-      <div className="form-row" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "24px" }}>
-        <div>
-          <label style={labelStyle}>Full Name</label>
-          <input type="text" placeholder="Your name" style={{ ...fieldStyle, width: "100%" }} />
-        </div>
-        <div>
-          <label style={labelStyle}>Email Address</label>
-          <input type="email" placeholder="you@company.com" style={{ ...fieldStyle, width: "100%" }} />
-        </div>
-      </div>
-      <div>
-        <label style={labelStyle}>Phone Number</label>
-        <input type="tel" placeholder="+91 XXXXX XXXXX" style={fieldStyle} />
-      </div>
-      <div>
-        <label style={labelStyle}>Requirement Details</label>
-        <textarea
-          rows={4}
-          placeholder="Describe your requirement..."
-          style={{ ...fieldStyle, resize: "none", paddingTop: "10px" }}
-        />
-      </div>
-      <button
-        style={{
-          background: T.orange,
-          color: T.white,
-          border: "none",
-          padding: "16px 36px",
-          fontFamily: FONT_BODY,
-          fontSize: "11px",
-          fontWeight: 700,
-          letterSpacing: "0.18em",
-          textTransform: "uppercase",
-          cursor: "pointer",
-          width: "fit-content",
-          transition: "background 0.2s, transform 0.1s",
-          position: "relative",
-        }}
-        onMouseEnter={e => (e.currentTarget.style.background = T.orangeLight)}
-        onMouseLeave={e => (e.currentTarget.style.background = T.orange)}
-        onMouseDown={e => (e.currentTarget.style.transform = "translateY(1px)")}
-        onMouseUp={e => (e.currentTarget.style.transform = "translateY(0)")}
-      >
-        Submit Inquiry →
-      </button>
+const ContactForm = () => (
+  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+      <input type="text" placeholder="Full Name" className="inp" />
+      <input type="email" placeholder="Email" className="inp" />
     </div>
-  );
-};
+    <input type="tel" placeholder="+91 Phone Number" className="inp" />
+    <textarea rows={4} placeholder="Describe your requirement..." className="inp" style={{ resize: "none" }} />
+    <button className="btn-primary" style={{ border: "none", width: "fit-content" }}>Submit Inquiry</button>
+  </div>
+);
 
 /* ── SALES REP CARD ── */
-const SalesRepCard = ({ rep, idx }: { rep: Rep; idx: number }) => {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <FadeIn delay={idx * 0.07}>
-      <div
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        style={{
-          display: "grid",
-          gridTemplateColumns: "4px 1fr",
-          gap: "0",
-          transition: "transform 0.2s",
-          transform: hovered ? "translateX(4px)" : "translateX(0)",
-        }}
-      >
-        <div style={{ background: hovered ? T.orange : T.rule, transition: "background 0.2s" }} />
-        <div style={{
-          padding: "20px 24px",
-          background: T.bgPanel,
-          border: `1px solid ${hovered ? T.orange : T.rule}`,
-          borderLeft: "none",
-        }}>
-          <p style={{
-            fontFamily: FONT_MONO,
-            fontSize: "8.5px",
-            fontWeight: 500,
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            color: T.orange,
-            margin: "0 0 4px",
-          }}>{rep.title}</p>
-          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "12px", marginBottom: "12px" }}>
-            <h4 style={{ fontFamily: FONT_BODY, fontSize: "16px", fontWeight: 700, color: T.ink, margin: 0 }}>
-              {rep.name}
-            </h4>
-            <span style={{
-              fontFamily: FONT_MONO,
-              fontSize: "10px",
-              color: T.inkLight,
-              whiteSpace: "nowrap",
-            }}>{rep.location}</span>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            <a href={`tel:${rep.phone}`} style={{
-              fontFamily: FONT_MONO,
-              fontSize: "12px",
-              color: hovered ? T.orange : T.ink,
-              textDecoration: "none",
-              transition: "color 0.2s",
-              fontWeight: 500,
-            }}>{rep.phone}</a>
-            <a href={`mailto:${rep.email}`} style={{
-              fontFamily: FONT_BODY,
-              fontSize: "11.5px",
-              color: T.inkDim,
-              textDecoration: "none",
-              transition: "color 0.2s",
-              wordBreak: "break-all",
-            }}
-              onMouseEnter={e => (e.currentTarget.style.color = T.orange)}
-              onMouseLeave={e => (e.currentTarget.style.color = T.inkDim)}
-            >{rep.email}</a>
-          </div>
-        </div>
-      </div>
-    </FadeIn>
-  );
-};
-
-/* ── CATEGORY BLOCK ── */
-const CategoryBlock = ({ category, idx }: { category: MachineCategory; idx: number }) => (
-  <FadeIn delay={0.04}>
-    <div className="category-block" style={{ marginBottom: "96px" }}>
-      {/* Category header — big industrial type */}
-      <div className="cat-header" style={{
-        display: "grid",
-        gridTemplateColumns: "auto 1fr",
-        gap: "0",
-        marginBottom: "48px",
-        alignItems: "stretch",
-      }}>
-        <div style={{
-          background: T.orange,
-          padding: "16px 20px",
-          display: "flex",
-          alignItems: "center",
-        }}>
-          <span style={{
-            fontFamily: FONT_MONO,
-            fontSize: "11px",
-            fontWeight: 500,
-            color: T.white,
-            letterSpacing: "0.12em",
-          }}>{String(idx + 1).padStart(2, "0")}</span>
-        </div>
-        <div style={{
-          background: T.bgDark,
-          padding: "16px 28px",
-          display: "flex",
-          alignItems: "center",
-          gap: "24px",
-          justifyContent: "space-between",
-        }}>
-          <h2 className="cat-title" style={{
-            fontFamily: FONT_DISPLAY,
-            fontSize: "clamp(28px, 4vw, 48px)",
-            fontWeight: 400,
-            color: T.white,
-            margin: 0,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-          }}>
-            {category.name}
-          </h2>
-          <div style={{
-            fontFamily: FONT_MONO,
-            fontSize: "9px",
-            color: T.inkLight,
-            letterSpacing: "0.14em",
-            whiteSpace: "nowrap",
-          }}>
-            {category.subcategories.length} SUBCATEGORIES
-          </div>
-        </div>
-      </div>
-
-      {category.subcategories.map((sub, si) => (
-        <div key={si} style={{ marginBottom: "48px" }}>
-          {/* Subcategory label */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "16px",
-            marginBottom: "20px",
-            paddingBottom: "12px",
-            borderBottom: `2px solid ${T.ink}`,
-          }}>
-            <span style={{
-              fontFamily: FONT_BODY,
-              fontSize: "11px",
-              fontWeight: 700,
-              letterSpacing: "0.18em",
-              textTransform: "uppercase",
-              color: T.ink,
-            }}>{sub.name}</span>
-            <div style={{ flex: 1, height: "1px", background: T.rule }} />
-          </div>
-
-          {sub.groups ? (
-            <div className="sub-group" style={{ paddingLeft: "24px", borderLeft: `2px solid ${T.rule}` }}>
-              {sub.groups.map((grp) => (
-                <Accordion
-                  key={grp.name}
-                  title={grp.name.replace(/\s*\(\d+\)$/, "")}
-                  count={grp.name.match(/\((\d+)\)$/)?.[1]}
-                >
-                  <div className="product-grid" style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                    gap: "12px",
-                    paddingTop: "12px",
-                  }}>
-                    {grp.items.map((prod, pi) => (
-                      <ProductCard key={prod.name} product={prod} index={pi} />
-                    ))}
-                  </div>
-                </Accordion>
-              ))}
-            </div>
-          ) : sub.items ? (
-            <div className="product-grid" style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-              gap: "12px",
-              paddingLeft: "24px",
-              borderLeft: `2px solid ${T.rule}`,
-            }}>
-              {sub.items.map((prod, pi) => (
-                <ProductCard key={prod.name} product={prod} index={pi} />
-              ))}
-            </div>
-          ) : null}
-        </div>
-      ))}
+const RepCard = ({ rep }: { rep: Rep }) => (
+  <div className="rep-card">
+    <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: C.navy, marginBottom: 6 }}>{rep.title}</p>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
+      <h4 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 16, fontWeight: 800, color: C.text }}>{rep.name}</h4>
+      <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 11, fontWeight: 600, color: C.textLight }}>{rep.location}</span>
     </div>
-  </FadeIn>
+    <a href={`tel:${rep.phone}`} style={{ display: "block", fontSize: 13, fontWeight: 600, color: C.text, textDecoration: "none", marginBottom: 3 }}>{rep.phone}</a>
+    <a href={`mailto:${rep.email}`} style={{ fontSize: 12, color: C.textLight, textDecoration: "none", wordBreak: "break-all" }}>{rep.email}</a>
+  </div>
 );
 
 /* ── MAIN PAGE ── */
 export default function HusqvarnaPage() {
+  const [enquiryProduct, setEnquiryProduct] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [activeSection, setActiveSection] = useState("");
-  const [menuOpen, setMenuOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(0);
-  const { scrollY } = useScroll();
-  const heroY = useTransform(scrollY, [0, 700], [0, -100]);
 
   useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    handleResize(); // initial
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    const onScroll = () => {
-      setScrolled(window.scrollY > 40);
-      const ids = ["about", "machines", "services", "contact"];
-      for (const id of ids) {
-        const el = document.getElementById(id);
-        if (el) {
-          const top = el.getBoundingClientRect().top;
-          if (top <= 120) setActiveSection(id);
-        }
-      }
-    };
+    const onScroll = () => setScrolled(window.scrollY > 50);
+    const onResize = () => setWindowWidth(window.innerWidth);
+    onResize();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("resize", onResize);
+    return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onResize); };
   }, []);
 
-  const navLinks = ["about", "machines", "services", "contact"];
-  const isMobile = windowWidth < 768;
-  const isTablet = windowWidth >= 768 && windowWidth < 1024;
+  const isMobile = windowWidth > 0 && windowWidth < 768;
+  
+const NAV = [
+  ["Home", "/"],   // 👈 added this
+  ["About", "#about"],
+  ["Machines", "#machines"],
+  ["Services", "#services"],
+  ["Contact", "#contact"]
+];  return (
+    <main style={{ background: C.white, color: C.text, fontFamily: "'Barlow', sans-serif", minHeight: "100vh" }}>
+      <style>{GS}</style>
 
-  return (
-    <div style={{
-      minHeight: "100vh",
-      background: T.bg,
-      color: T.ink,
-      fontFamily: FONT_BODY,
-    }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        ::selection { background: ${T.orange}; color: ${T.white}; }
-        html { scroll-behavior: smooth; }
-        input::placeholder, textarea::placeholder { color: ${T.inkLight}; }
-        input:focus, textarea:focus { border-bottom-color: ${T.orange} !important; }
-        
-        /* Cool concrete texture */
-        .concrete-bg {
-          position: relative;
-        }
-        .concrete-bg::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          opacity: 0.025;
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-          background-size: 256px 256px;
-          pointer-events: none;
-          z-index: 0;
-        }
+      {enquiryProduct && <EnquiryModal productName={enquiryProduct} onClose={() => setEnquiryProduct(null)} />}
 
-        /* Cross-hatch grid pattern */
-        .grid-pattern::after {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background-image: 
-            linear-gradient(rgba(17,24,39,0.04) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(17,24,39,0.04) 1px, transparent 1px);
-          background-size: 48px 48px;
-          pointer-events: none;
-        }
-        
-        /* Responsive helpers */
-        @media (max-width: 767px) {
-          .hide-mobile { display: none !important; }
-          .product-grid { grid-template-columns: 1fr !important; }
-          .cat-header { grid-template-columns: auto 1fr !important; }
-          .cat-title { font-size: 32px !important; }
-          .hero-stats { display: none !important; }
-          .footer-grid { grid-template-columns: repeat(2, 1fr) !important; }
-          .form-row { grid-template-columns: 1fr !important; }
-          .section-padding { padding: 80px 20px !important; }
-          .hero-heading { font-size: 48px !important; }
-          .hero-subheading { font-size: 14px !important; }
-          .hero-rightpanel { display: none; }
-        }
-        @media (min-width: 768px) and (max-width: 1023px) {
-          .hero-stats { display: flex; flex-direction: column; width: 160px; }
-          .hero-heading { font-size: 64px !important; }
-          .section-padding { padding: 100px 32px !important; }
-          .form-row { grid-template-columns: 1fr 1fr !important; }
-          .footer-grid { grid-template-columns: repeat(4, 1fr) !important; }
-        }
-        @media (min-width: 1024px) {
-          .form-row { grid-template-columns: 1fr 1fr !important; }
-          .section-padding { padding: 120px 48px !important; }
-        }
-        
-        /* Hamburger menu */
-        .hamburger { display: none; }
-        @media (max-width: 767px) {
-          .hamburger { display: flex; }
-          .desktop-nav { display: none; }
-        }
-      `}</style>
-
-      {/* ─── NAV ─── */}
-      <motion.nav
-        initial={{ y: -80 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 100,
-          height: "64px",
-          background: scrolled ? "rgba(240,237,230,0.97)" : "transparent",
-          borderBottom: scrolled ? `1px solid ${T.ruleMid}` : "1px solid transparent",
-          backdropFilter: scrolled ? "blur(12px)" : "none",
-          display: "flex",
-          alignItems: "center",
-          padding: "0 20px",
-          justifyContent: "space-between",
-          transition: "background 0.3s, border-color 0.3s",
-        }}
-      >
-        {/* Logo */}
-        <a 
-          href="/" 
-          style={{ 
-            display: "flex", 
-            alignItems: "center", 
-            gap: "0", 
-            textDecoration: "none", 
-            cursor: "pointer" 
-          }}
-        >
-          <div style={{
-            background: T.orange,
-            padding: "6px 10px",
-            display: "flex",
-            alignItems: "center",
-            marginRight: "10px",
-          }}>
-            <span style={{
-              fontFamily: FONT_DISPLAY,
-              fontSize: "14px",
-              color: T.white,
-              letterSpacing: "0.12em",
-            }}>H</span>
-          </div>
-          <div>
-            <span style={{
-              fontFamily: FONT_DISPLAY,
-              fontSize: "15px",
-              letterSpacing: "0.14em",
-              color: T.ink,
-            }}>HUSQVARNA</span>
-            <span style={{
-              fontFamily: FONT_MONO,
-              fontSize: "8px",
-              color: T.inkDim,
-              letterSpacing: "0.18em",
-              display: "block",
-              marginTop: "-2px",
-            }}>CONSTRUCTION</span>
-          </div>
-        </a>
-
-        {/* Desktop navigation */}
-        <div className="desktop-nav" style={{ display: "flex", gap: "0px", alignItems: "stretch", height: "64px" }}>
-          {navLinks.map(link => (
-            <a
-              key={link}
-              href={`#${link}`}
-              style={{
-                fontFamily: FONT_BODY,
-                fontSize: "11px",
-                fontWeight: 700,
-                letterSpacing: "0.16em",
-                textTransform: "uppercase",
-                textDecoration: "none",
-                color: activeSection === link ? T.white : T.inkMid,
-                background: activeSection === link ? T.orange : "transparent",
-                padding: "0 16px",
-                display: "flex",
-                alignItems: "center",
-                borderLeft: `1px solid ${T.rule}`,
-                transition: "background 0.2s, color 0.2s",
-              }}
-            >
-              {link}
-            </a>
-          ))}
-          <a
-            href="#contact"
-            style={{
-              fontFamily: FONT_BODY,
-              fontSize: "11px",
-              fontWeight: 700,
-              letterSpacing: "0.16em",
-              textTransform: "uppercase",
-              textDecoration: "none",
-              color: T.white,
-              background: T.ink,
-              padding: "0 16px",
-              display: "flex",
-              alignItems: "center",
-              borderLeft: `1px solid ${T.rule}`,
-              transition: "background 0.2s",
-            }}
-            onMouseEnter={e => (e.currentTarget.style.background = T.orange)}
-            onMouseLeave={e => (e.currentTarget.style.background = T.ink)}
-          >
-            Inquire →
+      {/* ── NAVBAR ── */}
+      <nav style={{ position: "sticky", top: 0, zIndex: 200, background: C.navy, borderBottom: `3px solid ${C.orange}` }}>
+        <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 32px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <a href="#hero" style={{ textDecoration: "none" }}>            
+            <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: 22, textTransform: "uppercase", color: C.white, lineHeight: 1 }}>HUSQVARNA</div>
+            <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 9, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>Construction India</div>
           </a>
+          <div className="hide-mobile" style={{ display: "flex", gap: 32 }}>
+            {NAV.map(([label, href]) => (
+              <a key={label} href={href} className="nav-link">{label}</a>
+            ))}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <a href="#contact" className="btn-orange" style={{ fontSize: 12, padding: "9px 22px" }}>Get Quote</a>
+            {isMobile && (
+              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ background: "none", border: "none", color: C.white, fontSize: 22, cursor: "pointer" }}>{mobileMenuOpen ? "✕" : "☰"}</button>
+            )}
+          </div>
         </div>
+        {mobileMenuOpen && (
+          <div style={{ background: "#071428", borderTop: `1px solid rgba(255,255,255,0.06)` }}>
+            {NAV.map(([label, href]) => (
+              <a key={label} href={href} onClick={() => setMobileMenuOpen(false)} style={{ display: "block", padding: "13px 24px", fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(255,255,255,0.6)", textDecoration: "none", borderBottom: `1px solid rgba(255,255,255,0.04)` }}>{label}</a>
+            ))}
+          </div>
+        )}
+      </nav>
 
-        {/* Mobile menu toggle */}
-        <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)} style={{
-          background: "none",
-          border: "none",
-          color: T.ink,
-          fontSize: "24px",
-          cursor: "pointer",
-          zIndex: 110,
-          display: isMobile ? "flex" : "none",
-        }}>
-          {menuOpen ? "✕" : "☰"}
-        </button>
-
-        {/* Mobile nav overlay */}
-        <AnimatePresence>
-          {menuOpen && isMobile && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              style={{
-                position: "absolute",
-                top: "64px",
-                left: 0,
-                right: 0,
-                background: "rgba(240,237,230,0.98)",
-                backdropFilter: "blur(12px)",
-                display: "flex",
-                flexDirection: "column",
-                borderBottom: `1px solid ${T.ruleMid}`,
-                zIndex: 99,
-              }}
-            >
-              {navLinks.map(link => (
-                <a
-                  key={link}
-                  href={`#${link}`}
-                  onClick={() => setMenuOpen(false)}
-                  style={{
-                    fontFamily: FONT_BODY,
-                    fontSize: "13px",
-                    fontWeight: 700,
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    textDecoration: "none",
-                    color: activeSection === link ? T.orange : T.ink,
-                    padding: "16px 24px",
-                    borderBottom: `1px solid ${T.rule}`,
-                  }}
-                >
-                  {link}
-                </a>
-              ))}
-              <a
-                href="#contact"
-                onClick={() => setMenuOpen(false)}
-                style={{
-                  fontFamily: FONT_BODY,
-                  fontSize: "13px",
-                  fontWeight: 700,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  textDecoration: "none",
-                  color: T.white,
-                  background: T.ink,
-                  padding: "16px 24px",
-                  textAlign: "center",
-                }}
-              >
-                Inquire →
-              </a>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.nav>
-
-      {/* ─── HERO ─── */}
-      <section
-        className="concrete-bg grid-pattern section-padding"
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "flex-end",
-          position: "relative",
-          overflow: "hidden",
-          background: T.bg,
-          padding: "120px 48px 0",
-        }}
-      >
-        {/* Large background text */}
-        <div className="hide-mobile" style={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          fontFamily: FONT_DISPLAY,
-          fontSize: "clamp(120px, 22vw, 300px)",
-          letterSpacing: "-0.02em",
-          color: "rgba(28,26,23,0.035)",
-          whiteSpace: "nowrap",
-          userSelect: "none",
-          pointerEvents: "none",
-          zIndex: 0,
-        }}>HUSQVARNA</div>
-
-        {/* Orange vertical stripe (hidden on mobile) */}
-        <div className="hide-mobile" style={{
-          position: "absolute",
-          right: "80px",
-          top: 0,
-          bottom: 0,
-          width: "4px",
-          background: T.orange,
-          zIndex: 1,
-        }} />
-
-        {/* Horizontal measurement lines */}
-        <div className="hide-mobile" style={{
-          position: "absolute",
-          top: "120px",
-          left: "48px",
-          right: "100px",
-          height: "1px",
-          background: T.rule,
-          zIndex: 1,
-        }} />
-        <div className="hide-mobile" style={{
-          position: "absolute",
-          top: "120px",
-          left: "48px",
-          width: "1px",
-          height: "12px",
-          background: T.ruleMid,
-          zIndex: 1,
-        }} />
-        <div className="hide-mobile" style={{
-          position: "absolute",
-          top: "120px",
-          right: "100px",
-          width: "1px",
-          height: "12px",
-          background: T.ruleMid,
-          zIndex: 1,
-        }} />
-
-        <motion.div
-          style={{ y: heroY, position: "relative", zIndex: 2, padding: "0 0 0" }}
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <div style={{ display: "flex", gap: isMobile ? "24px" : "0", flexDirection: isMobile ? "column" : "row", alignItems: "flex-end" }}>
-              {/* Big headline */}
-              <div style={{ flex: 1 }}>
-                <div style={{ marginBottom: "24px" }}>
-                  <span style={{
-                    fontFamily: FONT_MONO,
-                    fontSize: "10px",
-                    letterSpacing: "0.22em",
-                    color: T.orange,
-                    textTransform: "uppercase",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px",
-                    marginBottom: "20px",
-                  }}>
-                   
-                    
-                  </span>
-                </div>
-                <h1 className="hero-heading" style={{
-                  fontFamily: FONT_DISPLAY,
-                  fontSize: isMobile ? "48px" : "clamp(72px, 11vw, 148px)",
-                  fontWeight: 400,
-                  letterSpacing: "0.04em",
-                  textTransform: "uppercase",
-                  color: T.ink,
-                  lineHeight: 0.9,
-                  margin: "0 0 24px",
-                }}>
-                  Built For
-                  <span style={{ color: T.orange }}>The Site.</span>
-                  Built To<br />Last.
-                </h1>
-
-                <p className="hero-subheading" style={{
-                  fontFamily: FONT_BODY,
-                  fontSize: isMobile ? "14px" : "16px",
-                  color: T.inkDim,
-                  maxWidth: "520px",
-                  lineHeight: 1.8,
-                  marginBottom: "30px",
-                  fontWeight: 400,
-                }}>
-                  Global leader in manufacturing innovative equipment and diamond tools for the light construction industry. Engineering relentless productivity since the 20th century.
-                </p>
-
-                <div style={{ display: "flex", gap: "0", alignItems: "center", flexWrap: "wrap" }}>
-                  <a
-                    href="#machines"
-                    style={{
-                      background: T.ink,
-                      color: T.white,
-                      textDecoration: "none",
-                      padding: "14px 28px",
-                      fontFamily: FONT_BODY,
-                      fontSize: "11px",
-                      fontWeight: 700,
-                      letterSpacing: "0.18em",
-                      textTransform: "uppercase",
-                      transition: "background 0.2s",
-                      display: "inline-block",
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.background = T.orange)}
-                    onMouseLeave={e => (e.currentTarget.style.background = T.ink)}
-                  >
-                    Explore Fleet →
-                  </a>
-                  <a
-                    href="#about"
-                    style={{
-                      color: T.ink,
-                      textDecoration: "none",
-                      padding: "14px 28px",
-                      fontFamily: FONT_BODY,
-                      fontSize: "11px",
-                      fontWeight: 700,
-                      letterSpacing: "0.18em",
-                      textTransform: "uppercase",
-                      border: `1px solid ${T.ruleMid}`,
-                      borderLeft: "none",
-                      display: "inline-block",
-                      transition: "color 0.2s, border-color 0.2s",
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.color = T.orange; e.currentTarget.style.borderColor = T.orange; }}
-                    onMouseLeave={e => { e.currentTarget.style.color = T.ink; e.currentTarget.style.borderColor = T.ruleMid; }}
-                  >
-                    Our Story
-                  </a>
-                </div>
-              </div>
-
-              {/* Right panel — vertical stats (hidden on mobile) */}
-              <div className={isMobile ? "hide-mobile" : ""} style={{
-                width: "200px",
-                flexShrink: 0,
-                display: "flex",
-                flexDirection: "column",
-                borderLeft: `1px solid ${T.ruleMid}`,
-                marginBottom: "0",
-                paddingLeft: "32px",
-                gap: "0",
-                alignSelf: "flex-end",
-                paddingBottom: "0",
-              }}>
-                {[
-                  ["SEK 7.2B", "Annual Revenue"],
-                  ["2,500+", "Employees"],
-                  ["4", "Continents"],
-                  ["40+", "Categories"],
-                ].map(([val, label], i) => (
-                  <div key={i} style={{
-                    padding: "20px 0",
-                    borderBottom: i < 3 ? `1px solid ${T.rule}` : "none",
-                  }}>
-                    <div style={{
-                      fontFamily: FONT_DISPLAY,
-                      fontSize: "36px",
-                      letterSpacing: "0.04em",
-                      color: T.ink,
-                      lineHeight: 1,
-                      marginBottom: "4px",
-                    }}>{val}</div>
-                    <div style={{
-                      fontFamily: FONT_MONO,
-                      fontSize: "8px",
-                      letterSpacing: "0.14em",
-                      textTransform: "uppercase",
-                      color: T.inkLight,
-                    }}>{label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-
-        {/* Bottom ticker bar */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.5 }}
-          style={{
-            position: "relative",
-            zIndex: 2,
-            background: T.bgDark,
-            marginTop: "40px",
-            padding: "14px 20px",
-            display: "flex",
-            alignItems: "center",
-            gap: "30px",
-            overflowX: "auto",
-            borderTop: `3px solid ${T.orange}`,
-          }}
-        >
-          {["Concrete Vibrators", "Power Screeds", "Power Trowels", "Plate Compactors", "Reversible Plates", "Compaction Rollers", "Rammers"].map((item, i) => (
-            <span key={i} style={{
-              fontFamily: FONT_MONO,
-              fontSize: "9px",
-              letterSpacing: "0.18em",
-              textTransform: "uppercase",
-              color: T.inkLight,
-              whiteSpace: "nowrap",
-              display: "flex",
-              alignItems: "center",
-              gap: "16px",
-            }}>
-              {i > 0 && <span style={{ color: T.orange, fontSize: "6px" }}>◆</span>}
+      {/* ── HERO ── */}
+      <section id="hero" style={{ position: "relative", minHeight: "88vh", display: "flex", alignItems: "center", overflow: "hidden", background: C.navy }}>
+        <img
+          src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1600&q=80&auto=format&fit=crop"
+          alt="Construction site"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 40%", opacity: 0.25 }}
+        />
+        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: C.orange }} />
+        <div style={{ position: "relative", zIndex: 10, maxWidth: 1400, margin: "0 auto", padding: "0 60px 80px", width: "100%" }}>
+          <span style={{ display: "inline-block", fontFamily: "'Barlow Condensed',sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: 28, border: `1px solid rgba(255,255,255,0.15)`, padding: "5px 14px" }}>
+            Global Leader in Construction Equipment · India
+          </span>
+          <h1 className="hero-h" style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: "clamp(60px,9vw,100px)", lineHeight: 0.92, textTransform: "uppercase", color: C.white, marginBottom: 22 }}>
+            Built<br />For<br /><span style={{ color: C.orange }}>The Site.</span>
+          </h1>
+          <p style={{ fontSize: "clamp(14px,1.4vw,16px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 440, marginBottom: 40 }}>
+            Global leader in manufacturing innovative equipment and diamond tools for the light construction industry. Engineering relentless productivity.
+          </p>
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+            <a href="#machines" className="btn-orange" style={{ fontSize: 13, padding: "14px 36px" }}>View Products</a>
+            <a href="#contact" className="btn-outline" style={{ fontSize: 13, padding: "14px 36px" }}>Enquire Now</a>
+          </div>
+        </div>
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.4)", borderTop: `1px solid rgba(255,255,255,0.06)`, padding: "12px 24px", display: "flex", alignItems: "center", gap: 0, overflowX: "auto" }}>
+          {["Concrete Vibrators", "Power Screeds", "Power Trowels", "Plate Compactors", "Reversible Plates", "Compaction Rollers", "Tamping Rammers"].map((item, i) => (
+            <span key={i} style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 14, paddingRight: 20 }}>
+              {i > 0 && <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>}
               {item}
             </span>
           ))}
-        </motion.div>
-      </section>
-
-      {/* ─── ABOUT ─── */}
-      <section id="about" className="section-padding" style={{ background: T.bgAlt, padding: "120px 48px", position: "relative" }}>
-        {/* Corner marks (hidden on mobile) */}
-        <div className="hide-mobile" style={{ position: "absolute", top: "40px", left: "40px", width: "20px", height: "20px", borderTop: `2px solid ${T.orange}`, borderLeft: `2px solid ${T.orange}` }} />
-        <div className="hide-mobile" style={{ position: "absolute", top: "40px", right: "40px", width: "20px", height: "20px", borderTop: `2px solid ${T.orange}`, borderRight: `2px solid ${T.orange}` }} />
-
-        <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
-          <FadeIn>
-            <Eyebrow>About Husqvarna Construction</Eyebrow>
-          </FadeIn>
-
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? "40px" : "80px", alignItems: "start" }}>
-            <FadeIn>
-              <h2 style={{
-                fontFamily: FONT_DISPLAY,
-                fontSize: isMobile ? "36px" : "clamp(40px, 5vw, 72px)",
-                fontWeight: 400,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                color: T.ink,
-                lineHeight: 0.95,
-                marginBottom: "24px",
-              }}>
-                Pioneering<br />
-                <span style={{ color: T.orange }}>Performance</span><br />
-                Since Day One.
-              </h2>
-              <p style={{ fontSize: "15px", color: T.inkDim, lineHeight: 1.85, marginBottom: "16px" }}>
-                Husqvarna Construction specializes in construction equipment, diamond tools, and cutting, drilling, and surface preparation solutions.
-              </p>
-              <p style={{ fontSize: "15px", color: T.inkDim, lineHeight: 1.85, marginBottom: "32px" }}>
-                The company aims to help shape modern urban environments by providing advanced tools and technology. Its goal is to be a trusted business partner while staying at the forefront of industry innovation.
-              </p>
-              <div style={{ display: "flex", gap: "0", flexWrap: "wrap" }}>
-                {["Founded in Sweden", "Jonsered HQ", "Global Operations"].map((tag, i) => (
-                  <span key={i} style={{
-                    fontFamily: FONT_MONO,
-                    fontSize: "9px",
-                    letterSpacing: "0.16em",
-                    textTransform: "uppercase",
-                    color: T.ink,
-                    border: `1px solid ${T.ruleMid}`,
-                    borderLeft: i > 0 ? "none" : `1px solid ${T.ruleMid}`,
-                    padding: "8px 14px",
-                  }}>{tag}</span>
-                ))}
-              </div>
-            </FadeIn>
-
-            {/* Stats grid */}
-            <div>
-              <div style={{
-                display: "grid",
-                gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-                gap: "0",
-                border: `1px solid ${T.ruleMid}`,
-              }}>
-                {[
-                  { icon: "◉", title: "Global Presence", desc: "Factories in Europe, North America, China, and India. Wide network of sales companies, service centers, and distributors worldwide.", stat: "4 Continents" },
-                  { icon: "▦", title: "Head Office", desc: "Located in Jonsered, Sweden. Steering global operations with around 2,500 employees internationally.", stat: "Jonsered, SE" },
-                  { icon: "◈", title: "Annual Revenue", desc: "2025 annual revenue reflecting our position as a trusted and reliable industry leader in construction equipment.", stat: "SEK 7.2B" },
-                  { icon: "◇", title: "Innovation First", desc: "Providing advanced tools and technology. Widely used in construction, infrastructure, and urban development projects.", stat: "40+ Categories" },
-                ].map((h, i) => (
-                  <FadeIn key={i} delay={i * 0.08}>
-                    <div style={{
-                      padding: "32px 28px",
-                      borderRight: (!isMobile && i % 2 === 0) ? `1px solid ${T.ruleMid}` : "none",
-                      borderBottom: i < 2 ? `1px solid ${T.ruleMid}` : "none",
-                      background: T.bgPanel,
-                      position: "relative",
-                      overflow: "hidden",
-                      transition: "background 0.2s",
-                    }}
-                      onMouseEnter={e => (e.currentTarget.style.background = T.bgOrangeLight)}
-                      onMouseLeave={e => (e.currentTarget.style.background = T.bgPanel)}
-                    >
-                      <div style={{
-                        fontFamily: FONT_DISPLAY,
-                        fontSize: "32px",
-                        color: T.orange,
-                        letterSpacing: "0.06em",
-                        marginBottom: "8px",
-                        lineHeight: 1,
-                      }}>{h.stat}</div>
-                      <div style={{
-                        fontFamily: FONT_BODY,
-                        fontSize: "12px",
-                        fontWeight: 700,
-                        color: T.ink,
-                        marginBottom: "8px",
-                        letterSpacing: "0.02em",
-                      }}>{h.title}</div>
-                      <div style={{ fontFamily: FONT_BODY, fontSize: "12px", color: T.inkDim, lineHeight: 1.7 }}>{h.desc}</div>
-                    </div>
-                  </FadeIn>
-                ))}
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
-      {/* ─── MACHINES ─── */}
-      <section id="machines" className="section-padding" style={{ background: T.bg, padding: "120px 48px", position: "relative" }}>
-        <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
-          <FadeIn>
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: isMobile ? "1fr" : "1fr auto",
-              gap: "24px",
-              alignItems: "end",
-              marginBottom: "48px",
-              paddingBottom: "24px",
-              borderBottom: `3px solid ${T.ink}`,
-            }}>
-              <div>
-                <Eyebrow>Equipment Catalog</Eyebrow>
-                <h2 style={{
-                  fontFamily: FONT_DISPLAY,
-                  fontSize: isMobile ? "36px" : "clamp(40px, 5.5vw, 80px)",
-                  fontWeight: 400,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  color: T.ink,
-                  lineHeight: 0.95,
-                  margin: 0,
-                }}>
-                  The Full<br />
-                  <span style={{ color: T.orange }}>Arsenal.</span>
-                </h2>
-              </div>
-              <p style={{
-                fontFamily: FONT_BODY,
-                fontSize: "14px",
-                color: T.inkDim,
-                maxWidth: "380px",
-                lineHeight: 1.85,
-              }}>
-                Comprehensive range of heavy-duty construction machinery. From precision concrete placement to heavy compaction — engineered for continuous industrial performance.
+      {/* ── ABOUT ── */}
+      <section id="about" style={{ background: C.white, padding: "72px 48px", borderTop: `1px solid ${C.border}` }}>
+        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "5fr 3fr", gap: 24 }} className="mob-col">
+            <div style={{ background: C.offWhite, border: `1px solid ${C.border}`, padding: "48px 48px" }}>
+              <span className="section-label">About Husqvarna</span>
+              <div style={{ width: 36, height: 3, background: C.navy, marginBottom: 20 }} />
+              <h2 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: "clamp(28px,4vw,44px)", textTransform: "uppercase", color: C.text, lineHeight: 1, marginBottom: 20 }}>
+                Jonsered:<br />Heart of Innovation.
+              </h2>
+              <p style={{ fontSize: 15, color: C.textMid, lineHeight: 1.75, maxWidth: 540, marginBottom: 36 }}>
+                Husqvarna Construction specializes in construction equipment, diamond tools, and cutting, drilling, and surface preparation solutions — helping shape modern urban environments worldwide.
               </p>
+              <div style={{ display: "flex", gap: 40, borderTop: `1px solid ${C.border}`, paddingTop: 28 }} />
             </div>
-          </FadeIn>
-
-          <div>
-            {machineData.map((cat, i) => (
-              <CategoryBlock key={i} category={cat} idx={i} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div style={{ background: C.navy, padding: "32px 28px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                <span className="section-label" style={{ color: "rgba(255,255,255,0.4)" }}>Global HQ</span>
+                <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: 26, textTransform: "uppercase", color: C.white, lineHeight: 1, marginBottom: 10 }}>Jonsered,<br />Sweden</p>
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.65 }}>Steering global operations with a 2,500-strong team across 4 continents.</p>
+              </div>
+              <div style={{ background: C.white, border: `1px solid ${C.border}`, padding: "32px 28px", flex: 1, borderLeft: `3px solid ${C.navy}` }}>
+                <span className="section-label">Reliability</span>
+                <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: 22, textTransform: "uppercase", color: C.text, lineHeight: 1, marginBottom: 10 }}>Maximum<br />Uptime.</p>
+                <p style={{ fontSize: 13, color: C.textLight, lineHeight: 1.65 }}>Every machine is built to deliver maximum uptime in the most demanding construction environments.</p>
+              </div>
+            </div>
+          </div>
+          <div style={{ marginTop: 20, display: "grid", gridTemplateColumns: "repeat(4,1fr)", border: `1px solid ${C.border}`, borderRight: "none", borderBottom: "none" }} className="mob-col">
+            {[
+              { stat: "4 Continents", title: "Global Presence", desc: "Factories in Europe, North America, China, and India." },
+              { stat: "Jonsered, SE", title: "Head Office", desc: "Global HQ steering ~2,500 employees internationally." },
+              { stat: "SEK 7.2B", title: "Annual Revenue", desc: "Trusted leader in construction equipment worldwide." },
+              { stat: "40+ Categories", title: "Innovation First", desc: "Advanced tools used in construction and infrastructure." },
+            ].map((h, i) => (
+              <div key={i} style={{ padding: "24px 24px", background: C.white, borderRight: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}` }}>
+                <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 24, fontWeight: 800, color: C.navy, marginBottom: 4 }}>{h.stat}</div>
+                <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 12, fontWeight: 700, textTransform: "uppercase", color: C.text, marginBottom: 6 }}>{h.title}</div>
+                <div style={{ fontSize: 12, color: C.textLight, lineHeight: 1.65 }}>{h.desc}</div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ─── SERVICES ─── */}
-      <section id="services" className="section-padding" style={{ background: T.bgDark, padding: "120px 48px", position: "relative", overflow: "hidden" }}>
-        {/* Large watermark */}
-        <div className="hide-mobile" style={{
-          position: "absolute",
-          bottom: "-40px",
-          right: "-20px",
-          fontFamily: FONT_DISPLAY,
-          fontSize: "200px",
-          letterSpacing: "0.02em",
-          color: "rgba(255,255,255,0.03)",
-          userSelect: "none",
-          pointerEvents: "none",
-          lineHeight: 1,
-        }}>SERVICE</div>
+      {/* ── PRODUCTS ── */}
+      <ProductsSection onEnquire={(name) => setEnquiryProduct(name)} />
 
-        <div style={{ maxWidth: "1400px", margin: "0 auto", position: "relative", zIndex: 1 }}>
-          <FadeIn>
-            <div style={{ marginBottom: "48px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
-                <div style={{ width: "24px", height: "2px", background: T.orange }} />
-                <span style={{
-                  fontFamily: FONT_BODY,
-                  fontSize: "10px",
-                  fontWeight: 700,
-                  letterSpacing: "0.22em",
-                  textTransform: "uppercase",
-                  color: T.orange,
-                }}>Services</span>
-              </div>
-              <h2 style={{
-                fontFamily: FONT_DISPLAY,
-                fontSize: isMobile ? "36px" : "clamp(40px, 5.5vw, 80px)",
-                fontWeight: 400,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                color: T.white,
-                lineHeight: 0.95,
-              }}>
-                Global Support.<br />
-                <span style={{ color: T.orange }}>Zero Compromise.</span>
+      {/* ── SERVICES ── */}
+      <section id="services" style={{ background: C.white, borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, padding: "72px 48px" }}>
+        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 56, alignItems: "start" }} className="mob-col">
+            <div style={{ position: "sticky", top: 72 }}>
+              <span className="section-label">Service Solutions</span>
+              <div style={{ width: 36, height: 3, background: C.navy, marginBottom: 16 }} />
+              <h2 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: "clamp(32px,4vw,48px)", textTransform: "uppercase", color: C.text, lineHeight: 1, marginBottom: 16 }}>
+                Husqvarna<br />Service.
               </h2>
+              <p style={{ fontSize: 14, color: C.textMid, lineHeight: 1.7, marginBottom: 24 }}>
+                From powerful equipment to a complete range of services that help you stay productive every hour of every workday.
+              </p>
+              <a href="#contact" className="btn-primary">Contact Service Team</a>
             </div>
-          </FadeIn>
-
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? "40px" : "64px", alignItems: "start" }}>
-            <div>
-              <FadeIn delay={0.1}>
-                <p style={{
-                  fontFamily: FONT_BODY,
-                  fontSize: "15px",
-                  color: "rgba(255,255,255,0.65)",
-                  lineHeight: 1.85,
-                  marginBottom: "24px",
-                }}>
-                  At Husqvarna, we look after every aspect of your business. From powerful, precise, and ergonomic equipment to a complete range of services that help you stay productive every hour of every workday.
-                </p>
-                <p style={{
-                  fontFamily: FONT_BODY,
-                  fontSize: "15px",
-                  color: "rgba(255,255,255,0.65)",
-                  lineHeight: 1.85,
-                  marginBottom: "40px",
-                }}>
-                  Whether you're operating machines on-site, managing your fleet, or maintaining equipment in the workshop, Husqvarna services help you work with confidence. Our professional service centres and certified partners deliver reliable support throughout your machine's entire lifecycle.
-                </p>
-              </FadeIn>
-
-              {/* Service pillars */}
-              <FadeIn delay={0.2}>
-                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: "0", border: `1px solid rgba(255,255,255,0.12)` }}>
-                  {[
-                    { title: "On-site Support", num: "01" },
-                    { title: "Fleet Management", num: "02" },
-                    { title: "Workshop Service", num: "03" },
-                    { title: "Lifecycle Care", num: "04" },
-                  ].map((s, i) => (
-                    <div key={i} style={{
-                      padding: "24px 20px",
-                      borderRight: i % 2 === 0 ? "1px solid rgba(255,255,255,0.12)" : "none",
-                      borderBottom: i < 2 ? "1px solid rgba(255,255,255,0.12)" : "none",
-                      transition: "background 0.2s",
-                    }}
-                      onMouseEnter={e => (e.currentTarget.style.background = "rgba(26,108,184,0.15)")}
-                      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-                    >
-                      <div style={{
-                        fontFamily: FONT_MONO,
-                        fontSize: "8px",
-                        color: T.orange,
-                        letterSpacing: "0.14em",
-                        marginBottom: "8px",
-                      }}>{s.num}</div>
-                      <div style={{
-                        fontFamily: FONT_BODY,
-                        fontSize: "13px",
-                        fontWeight: 600,
-                        color: T.white,
-                        letterSpacing: "0.02em",
-                      }}>{s.title}</div>
-                    </div>
-                  ))}
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {[
+                { title: "On-site Support", tag: "Fast Response, Maximum Uptime", desc: "Expert engineers on-site to resolve issues quickly. Priority response within 8 hours.", points: ["Priority Service: Fast response within 8 hours", "Expert Support: Skilled engineers with right tools", "Proactive Maintenance: Prevent issues before they occur", "Higher Resale Value: Maintain long-term worth"] },
+                { title: "Fleet Management", tag: "Total Peace of Mind", desc: "Comprehensive fleet oversight designed for maximum efficiency and minimal disruption.", points: ["Priority Service: Quick support when you need it", "Proactive Care: Fix issues before they grow", "Parts Discounts: Save on genuine Husqvarna parts", "Cost Protection: No surprises during the contract"] },
+                { title: "Lifecycle Care", tag: "Extended Warranty You Can Trust", desc: "A comprehensive extended warranty designed for reliability and peace of mind.", points: ["Full Coverage: Engine, hydraulics & more", "Expert Support: Trained engineers & genuine parts", "Flexible Plans: Suited to your needs and budget", "Zero Hassle Service: Smooth maintenance support"] },
+              ].map((srv, i) => (
+                <div key={i} style={{ background: C.white, border: `1px solid ${C.border}`, padding: "28px 32px", borderLeft: `3px solid ${C.navy}` }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+                    <h3 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 20, fontWeight: 800, textTransform: "uppercase", color: C.text }}>{srv.title}</h3>
+                    <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: C.textLight, background: C.offWhite, padding: "3px 10px", border: `1px solid ${C.border}`, whiteSpace: "nowrap" }}>{srv.tag}</span>
+                  </div>
+                  <p style={{ fontSize: 13, color: C.textLight, lineHeight: 1.7, marginBottom: 18 }}>{srv.desc}</p>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 16px" }}>
+                    {srv.points.map((pt, pi) => (
+                      <div key={pi} style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 12, fontWeight: 500, color: C.textMid }}>
+                        <span style={{ color: C.navy, fontWeight: 700, marginTop: 1, flexShrink: 0 }}>—</span>{pt}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </FadeIn>
-            </div>
-
-            {/* Service Centre Card */}
-            <FadeIn delay={0.15}>
-              <div style={{
-                border: `1px solid rgba(255,255,255,0.12)`,
-                overflow: "hidden",
-              }}>
-                {/* Header */}
-                <div style={{
-                  background: T.orange,
-                  padding: "14px 28px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}>
-                  <span style={{
-                    fontFamily: FONT_MONO,
-                    fontSize: "9px",
-                    fontWeight: 500,
-                    letterSpacing: "0.2em",
-                    textTransform: "uppercase",
-                    color: T.white,
-                  }}>Service Centre</span>
-                  <span style={{
-                    fontFamily: FONT_MONO,
-                    fontSize: "9px",
-                    color: "rgba(255,255,255,0.7)",
-                  }}>Nashik, MH</span>
+              ))}
+              <div style={{ background: C.navy, border: `1px solid ${C.navy}` }}>
+                <div style={{ borderBottom: `1px solid rgba(255,255,255,0.08)`, padding: "10px 26px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>Service Centre</span>
+                  <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.3)" }}>Nashik, MH</span>
                 </div>
-
-                <div style={{ padding: "36px 28px", background: T.bgDarkAlt }}>
-                  <h4 style={{
-                    fontFamily: FONT_DISPLAY,
-                    fontSize: "32px",
-                    fontWeight: 400,
-                    letterSpacing: "0.06em",
-                    textTransform: "uppercase",
-                    color: T.white,
-                    marginBottom: "8px",
-                  }}>Nashik Service Centre</h4>
-                  <p style={{
-                    fontFamily: FONT_BODY,
-                    fontSize: "13px",
-                    color: "rgba(255,255,255,0.5)",
-                    marginBottom: "32px",
-                    lineHeight: 1.7,
-                  }}>
-                    Knowledgeable, service-focused staff providing world-class support. Our priority is your uptime.
-                  </p>
-
-                  <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                    <div style={{ paddingBottom: "24px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-                      <p style={{
-                        fontFamily: FONT_MONO,
-                        fontSize: "8px",
-                        letterSpacing: "0.18em",
-                        textTransform: "uppercase",
-                        color: T.orange,
-                        marginBottom: "8px",
-                      }}>Address</p>
-                      <p style={{
-                        fontFamily: FONT_BODY,
-                        fontSize: "13px",
-                        color: "rgba(255,255,255,0.65)",
-                        lineHeight: 1.75,
-                      }}>
-                        G No 312A/B266-269/270/276, Hissa No 12,<br />
-                        Plot No 9–15, Tehsil Gonde Dumala, Igatpuri,<br />
-                        Nashik, Maharashtra – 422403
-                      </p>
-                    </div>
-                    <div>
-                      <p style={{
-                        fontFamily: FONT_MONO,
-                        fontSize: "8px",
-                        letterSpacing: "0.18em",
-                        textTransform: "uppercase",
-                        color: T.orange,
-                        marginBottom: "10px",
-                      }}>Contact Person</p>
-                      <p style={{
-                        fontFamily: FONT_DISPLAY,
-                        fontSize: "22px",
-                        letterSpacing: "0.06em",
-                        color: T.white,
-                        marginBottom: "6px",
-                      }}>Nachiket Kapure</p>
-                      <a href="tel:+917550277721" style={{
-                        fontFamily: FONT_MONO,
-                        fontSize: "15px",
-                        color: T.orange,
-                        textDecoration: "none",
-                        fontWeight: 500,
-                        letterSpacing: "0.06em",
-                      }}>+91 7550277721</a>
-                    </div>
+                <div style={{ padding: "28px 32px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }} className="mob-col">
+                  <div>
+                    <h4 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 20, fontWeight: 800, textTransform: "uppercase", color: C.white, marginBottom: 8 }}>Nashik Service Centre</h4>
+                    <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.65, marginBottom: 14 }}>World-class support. Our priority is your uptime.</p>
+                    <span className="section-label" style={{ color: "rgba(255,255,255,0.3)" }}>Address</span>
+                    <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.75 }}>G No 312A/B266-269/270/276, Hissa No 12,<br />Plot No 9–15, Tehsil Gonde Dumala, Igatpuri,<br />Nashik, Maharashtra – 422403</p>
+                  </div>
+                  <div>
+                    <span className="section-label" style={{ color: "rgba(255,255,255,0.3)" }}>Contact Person</span>
+                    <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: 20, textTransform: "uppercase", color: C.white, marginBottom: 8 }}>Nachiket Kapure</p>
+                    <a href="tel:+917550277721" style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 22, fontWeight: 800, color: C.white, textDecoration: "none" }}>+91 7550277721</a>
                   </div>
                 </div>
               </div>
-            </FadeIn>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ─── CONTACT ─── */}
-      <section id="contact" className="section-padding" style={{ background: T.bg, padding: "120px 48px" }}>
-        <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
-          <FadeIn>
-            <Eyebrow>Contact</Eyebrow>
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-              gap: "24px",
-              marginBottom: "60px",
-              alignItems: "end",
-              paddingBottom: "32px",
-              borderBottom: `3px solid ${T.ink}`,
-            }}>
-              <h2 style={{
-                fontFamily: FONT_DISPLAY,
-                fontSize: isMobile ? "36px" : "clamp(40px, 5.5vw, 72px)",
-                fontWeight: 400,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                color: T.ink,
-                lineHeight: 0.95,
-              }}>
-                Let's Build<br />
-                <span style={{ color: T.orange }}>Together.</span>
+      {/* ── CONTACT ── */}
+      <section id="contact" style={{ background: C.offWhite, padding: "72px 48px" }}>
+        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 56, alignItems: "start" }} className="mob-col">
+            <div>
+              <span className="section-label">Get in Touch</span>
+              <div style={{ width: 36, height: 3, background: C.navy, marginBottom: 16 }} />
+              <h2 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: "clamp(40px,6vw,68px)", textTransform: "uppercase", color: C.text, lineHeight: 0.95, marginBottom: 40 }}>
+                Connect<br />with<br />Experts.
               </h2>
-              <p style={{
-                fontFamily: FONT_BODY,
-                fontSize: "15px",
-                color: T.inkDim,
-                lineHeight: 1.85,
-                paddingLeft: isMobile ? "0" : "48px",
-                borderLeft: isMobile ? "none" : `1px solid ${T.rule}`,
-              }}>
-                Need to get in contact with Husqvarna Construction? Send us your question or comments. We will get back to you as soon as possible.
-              </p>
-            </div>
-          </FadeIn>
-
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? "40px" : "80px", alignItems: "start" }}>
-            {/* Left — form + factory info */}
-            <div>
-              <FadeIn delay={0.1}>
-                <ContactForm />
-              </FadeIn>
-
-              <FadeIn delay={0.2}>
-                <div style={{
-                  marginTop: "40px",
-                  paddingTop: "32px",
-                  borderTop: `1px solid ${T.rule}`,
-                }}>
-                  <p style={{
-                    fontFamily: FONT_MONO,
-                    fontSize: "8.5px",
-                    fontWeight: 500,
-                    letterSpacing: "0.2em",
-                    textTransform: "uppercase",
-                    color: T.inkLight,
-                    marginBottom: "20px",
-                  }}>Factory & Registered Address</p>
-
-                  <div style={{
-                    display: "grid",
-                    gridTemplateColumns: "4px 1fr",
-                    gap: "0",
-                  }}>
-                    <div style={{ background: T.orange }} />
-                    <div style={{
-                      padding: "20px 20px",
-                      background: T.bgPanel,
-                      border: `1px solid ${T.rule}`,
-                      borderLeft: "none",
-                    }}>
-                      <p style={{ fontFamily: FONT_BODY, fontSize: "13px", color: T.inkDim, lineHeight: 1.75, marginBottom: "12px" }}>
-                        G No 312A/B266-269/270/276, Hissa No 12, Plot No 9–15,<br />
-                        Tehsil Gonde Dumala, Igatpuri, Nashik, Maharashtra – 422403
-                      </p>
-                      <a href="mailto:enquiries.marketingconstructions@husqvarnagroup.com"
-                        style={{ fontFamily: FONT_BODY, fontSize: "12px", color: T.inkDim, textDecoration: "none", display: "block", marginBottom: "4px" }}>
-                        enquiries.marketingconstructions@husqvarnagroup.com
-                      </a>
-                      <a href="tel:+917397775202" style={{ fontFamily: FONT_MONO, fontSize: "13px", color: T.orange, textDecoration: "none", fontWeight: 500 }}>
-                        +91 7397775202
-                      </a>
-                    </div>
-                  </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 24, marginBottom: 40 }}>
+                <div style={{ borderLeft: `3px solid ${C.navy}`, paddingLeft: 16 }}>
+                  <span className="section-label">General Enquiries</span>
+                  <a href="mailto:enquiries.marketingconstructions@husqvarnagroup.com" style={{ fontSize: 13, fontWeight: 500, color: C.text, textDecoration: "none" }}>enquiries.marketingconstructions<br />@husqvarnagroup.com</a>
                 </div>
-              </FadeIn>
-            </div>
-
-            {/* Right — sales reps */}
-            <div>
-              <FadeIn>
-                <div style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "16px",
-                  marginBottom: "24px",
-                  paddingBottom: "16px",
-                  borderBottom: `2px solid ${T.ink}`,
-                }}>
-                  <span style={{
-                    fontFamily: FONT_BODY,
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    letterSpacing: "0.18em",
-                    textTransform: "uppercase",
-                    color: T.ink,
-                  }}>Sales Representatives</span>
-                  <span style={{
-                    fontFamily: FONT_MONO,
-                    fontSize: "9px",
-                    color: T.white,
-                    background: T.orange,
-                    padding: "2px 8px",
-                  }}>{salesReps.length}</span>
+                <div style={{ borderLeft: `3px solid ${C.navy}`, paddingLeft: 16 }}>
+                  <span className="section-label">Phone</span>
+                  <a href="tel:+917397775202" style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 26, fontWeight: 800, color: C.text, textDecoration: "none" }}>+91 7397775202</a>
                 </div>
-              </FadeIn>
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                {salesReps.map((rep, i) => (
-                  <SalesRepCard key={i} rep={rep} idx={i} />
+              </div>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, paddingBottom: 12, borderBottom: `1px solid ${C.border}` }}>
+                  <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: C.textMid }}>Sales Representatives</span>
+                  <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 700, background: C.navy, color: C.white, padding: "2px 7px" }}>{salesReps.length}</span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {salesReps.map((rep, i) => <RepCard key={i} rep={rep} />)}
+                </div>
+              </div>
+            </div>
+            <div style={{ background: C.white, border: `1px solid ${C.border}`, borderTop: `3px solid ${C.navy}`, padding: "36px" }}>
+              <h3 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 22, fontWeight: 800, textTransform: "uppercase", color: C.text, marginBottom: 24 }}>Send an Enquiry</h3>
+              <ContactForm />
+              <div style={{ marginTop: 28, paddingTop: 22, borderTop: `1px solid ${C.border}` }}>
+                <span className="section-label">Factory & Registered Address</span>
+                <p style={{ fontSize: 13, color: C.textLight, lineHeight: 1.75 }}>
+                  G No 312A/B266-269/270/276, Hissa No 12, Plot No 9–15,<br />
+                  Tehsil Gonde Dumala, Igatpuri, Nashik, Maharashtra – 422403
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer style={{ background: C.navy, borderTop: `3px solid ${C.orange}` }}>
+        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", borderBottom: `1px solid rgba(255,255,255,0.06)` }} className="footer-grid">
+            {[
+              { label: "Equipment", items: ["Concrete Vibrators", "Concrete Screeds", "Power Trowels"] },
+              { label: "Compactors", items: ["Tamping Rammers", "Plate Compactors", "Compaction Rollers"] },
+              { label: "Services", items: ["On-site Support", "Fleet Management", "Workshop Service"] },
+              { label: "Company", items: ["About", "Contact", "Enquire"] },
+            ].map((col, i) => (
+              <div key={i} style={{ padding: "32px 28px", borderLeft: i > 0 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
+                <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 14 }}>{col.label}</p>
+                {col.items.map((item, j) => (
+                  <p key={j} style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.4)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.04em" }}>{item}</p>
                 ))}
               </div>
-            </div>
+            ))}
           </div>
-        </div>
-      </section>
-
-      {/* ─── FOOTER ─── */}
-      <footer style={{
-        background: T.bgDark,
-        padding: "0",
-        borderTop: `4px solid ${T.orange}`,
-      }}>
-        {/* Top strip */}
-        <div className={isMobile ? "footer-grid" : ""} style={{
-          display: "grid",
-          gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)",
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
-        }}>
-          {[
-            { label: "Equipment", items: ["Concrete Vibrators", "Concrete Screeds", "Power Trowels"] },
-            { label: "Compactors", items: ["Tamping Rammers", "Plate Compactors", "Compaction Rollers"] },
-            { label: "Services", items: ["On-site Support", "Fleet Management", "Workshop Service"] },
-            { label: "Company", items: ["About", "Contact", "Careers"] },
-          ].map((col, i) => (
-            <div key={i} style={{
-              padding: isMobile ? "24px 16px" : "40px 32px",
-              borderRight: (isMobile ? i % 2 === 0 : i < 3) ? "1px solid rgba(255,255,255,0.08)" : "none",
-              borderBottom: isMobile && i < 2 ? "1px solid rgba(255,255,255,0.08)" : "none",
-            }}>
-              <p style={{
-                fontFamily: FONT_MONO,
-                fontSize: "9px",
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                color: T.orange,
-                marginBottom: "16px",
-              }}>{col.label}</p>
-              {col.items.map((item, j) => (
-                <p key={j} style={{
-                  fontFamily: FONT_BODY,
-                  fontSize: "13px",
-                  color: "rgba(255,255,255,0.45)",
-                  marginBottom: "8px",
-                  cursor: "default",
-                  transition: "color 0.2s",
-                }}>{item}</p>
-              ))}
-            </div>
-          ))}
-        </div>
-
-        {/* Bottom bar */}
-        <div style={{
-          padding: isMobile ? "20px 20px" : "24px 48px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "16px",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0" }}>
-            <div style={{
-              background: T.orange,
-              padding: "5px 8px",
-              marginRight: "8px",
-            }}>
-              <span style={{ fontFamily: FONT_DISPLAY, fontSize: "12px", color: T.white, letterSpacing: "0.08em" }}>H</span>
-            </div>
+          <div style={{ padding: "18px 28px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
             <div>
-              <span style={{ fontFamily: FONT_DISPLAY, fontSize: "13px", letterSpacing: "0.14em", color: T.white }}>HUSQVARNA</span>
-              <span style={{ fontFamily: FONT_MONO, fontSize: "7px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.18em", display: "block", marginTop: "-1px" }}>CONSTRUCTION</span>
+              <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: 17, color: C.white, textTransform: "uppercase" }}>HUSQVARNA</p>
+              <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 9, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>Construction India</p>
             </div>
+            <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)" }}>
+              © {new Date().getFullYear()} Husqvarna Construction India
+            </p>
           </div>
-
-          <p style={{
-            fontFamily: FONT_MONO,
-            fontSize: "10px",
-            color: "rgba(255,255,255,0.3)",
-            letterSpacing: "0.1em",
-          }}>
-            © {new Date().getFullYear()} Husqvarna Group. All rights reserved.
-          </p>
         </div>
       </footer>
-    </div>
+    </main>
   );
 }
