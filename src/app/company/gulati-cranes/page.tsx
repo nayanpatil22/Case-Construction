@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 
-// ─── DATA (unchanged) ────────────────────────────────────────────────────────
+// ─── DATA ────────────────────────────────────────────────────────────────────
 const fleetData = {
   cranes: {
     label: 'Cranes',
@@ -12,7 +12,7 @@ const fleetData = {
           {
             name: 'Escorts TRX 2319',
             shortDesc: 'High-performance pick-and-carry crane for construction, industrial and infrastructure environments.',
-            image: null,
+            image: '/gulati/Escorts TRX 2319 Crane (2).webp',
             highlights: [
               'Maximum capacity: 23 Ton',
               'Boom length: ~19 metres',
@@ -36,7 +36,7 @@ const fleetData = {
           {
             name: 'Escorts TRX 15',
             shortDesc: 'Compact and efficient pick-and-carry crane ideal for light to medium-duty lifting in confined spaces.',
-            image: null,
+            image: '/gulati/Escorts TRX 15 Crane.jpg',
             highlights: [
               'Maximum capacity: 14–15 Ton',
               'Boom length: ~15–17 metres',
@@ -65,7 +65,7 @@ const fleetData = {
           {
             name: 'SANY STC800C',
             shortDesc: 'Versatile 80-ton truck crane with advanced safety controls for medium to heavy-duty operations.',
-            image: null,
+            image: '/gulati/SANY STC800C Truck Crane.jpg',
             highlights: [
               'Maximum capacity: 80 Ton',
               'Main boom: ~45–50 m',
@@ -89,7 +89,7 @@ const fleetData = {
           {
             name: 'SANY STC1100S',
             shortDesc: 'High-performance 110-ton truck crane built for infrastructure and industrial heavy lifts.',
-            image: null,
+            image: '/gulati/SANY STC1100S Truck Crane.jpg',
             highlights: [
               'Maximum capacity: 110 Ton',
               'Main boom: ~50–60 m',
@@ -113,7 +113,7 @@ const fleetData = {
           {
             name: 'SANY STC1600T7',
             shortDesc: 'Heavy-duty 160-ton truck crane engineered for mega infrastructure and wind energy projects.',
-            image: null,
+            image: '/gulati/SANY STC1600T7 Truck Crane.jpg',
             highlights: [
               'Maximum capacity: 160 Ton',
               'Main boom: ~60–70 m',
@@ -142,7 +142,7 @@ const fleetData = {
           {
             name: 'Demag AC 265',
             shortDesc: 'Premium 250-ton all terrain crane with 6-axle all-wheel drive for complex heavy-duty operations.',
-            image: null,
+            image: '/gulati/Demag AC 265 All Terrain Crane.png',
             highlights: [
               'Maximum capacity: ~250 Ton class',
               'Main boom: ~70–80 m',
@@ -166,7 +166,7 @@ const fleetData = {
           {
             name: 'Demag HC 240',
             shortDesc: 'Robust 240-ton tyre-mounted crane engineered for high-rise and large-scale industrial lifting.',
-            image: null,
+            image: '/gulati/Demag HC 240 Tyre Mounted Crane.png',
             highlights: [
               'Maximum capacity: ~240 Ton class',
               'Modular boom configuration',
@@ -200,7 +200,7 @@ const fleetData = {
           {
             name: 'CASE 770 NX',
             shortDesc: 'Powerful 74 HP backhoe loader built for high productivity in construction and infrastructure.',
-            image: null,
+            image: '/gulati/CASE 770 NX Backhoe Loader.jpg',
             highlights: [
               'Engine power: ~74 HP',
               'Operating weight: 7,500–8,000 kg',
@@ -224,7 +224,7 @@ const fleetData = {
           {
             name: 'JCB 155 Skid Steer',
             shortDesc: 'Compact and versatile skid steer loader for high performance in confined construction spaces.',
-            image: null,
+            image: '/gulati/JCB 155 Skid Steer Loader.jpg',
             highlights: [
               'Rated operating capacity: ~700 kg',
               'Engine power: ~50 HP',
@@ -258,7 +258,7 @@ const fleetData = {
           {
             name: 'JLG 45 ft Boom Lift',
             shortDesc: 'Compact aerial platform for safe access to medium-height areas in confined construction sites.',
-            image: null,
+            image: '/gulati/JLG 45 ft Boom Lift.jpg',
             highlights: [
               'Working height: ~45 ft (13–14 m)',
               'Horizontal outreach: 10–12 m',
@@ -282,7 +282,7 @@ const fleetData = {
           {
             name: 'JLG 60 ft Boom Lift',
             shortDesc: 'High-reach aerial platform for elevated access in construction and industrial maintenance.',
-            image: null,
+            image: '/gulati/JLG 60 ft Boom Lift (2).jpg',
             highlights: [
               'Working height: ~60 ft (18–20 m)',
               'Horizontal outreach: 12–15 m',
@@ -306,7 +306,7 @@ const fleetData = {
           {
             name: 'JLG 66 ft Boom Lift',
             shortDesc: 'Extended reach aerial platform with 4WD for construction and industrial height access.',
-            image: null,
+            image: '/gulati/JLG 66 ft Boom Lift.jpg',
             highlights: [
               'Working height: ~66 ft (20–21 m)',
               'Horizontal outreach: 15–17 m',
@@ -330,7 +330,7 @@ const fleetData = {
           {
             name: 'JLG 80 ft Boom Lift',
             shortDesc: 'High-reach 4WD aerial platform delivering reliable performance for construction and infrastructure.',
-            image: null,
+            image: '/gulati/JLG 80 ft Boom Lift.jpg',
             highlights: [
               'Working height: ~80 ft (24–26 m)',
               'Horizontal outreach: 17–20 m',
@@ -354,7 +354,7 @@ const fleetData = {
           {
             name: 'JLG 135 ft Boom Lift',
             shortDesc: 'Ultra high-reach 135 ft aerial platform for extreme-height construction and industrial work.',
-            image: null,
+            image: '/gulati/JLG 135 ft Boom Lift.jpg',
             highlights: [
               'Working height: ~135 ft (41–43 m)',
               'Horizontal outreach: 24–25 m',
@@ -388,7 +388,7 @@ const fleetData = {
           {
             name: 'Tata Yodha Towing Vehicle',
             shortDesc: 'Rugged and reliable utility pickup built for heavy-duty towing and roadside recovery operations.',
-            image: null,
+            image: '/gulati/Tata Yodha Towing Vehicle.webp',
             highlights: [
               'Engine: 2.2L Varicor Diesel',
               'Power: ~100–120 HP',
@@ -414,6 +414,8 @@ const fleetData = {
     },
   },
 };
+
+type CategoryKey = keyof typeof fleetData;
 
 const SERVICES = [
   'Crane Rental Service',
@@ -650,6 +652,15 @@ const globalStyles = `
   }
   .nav-link:hover { color: #E55300; }
 
+  /* Product image */
+  .product-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
   @media (max-width: 767px) {
     .hide-mobile { display: none !important; }
     .mob-stack { grid-template-columns: 1fr !important; }
@@ -663,7 +674,8 @@ type EnquiryModalProps = {
   onClose: () => void;
 };
 
-function EnquiryModal({ productName, onClose }: EnquiryModalProps) {  const [submitted, setSubmitted] = useState(false);
+function EnquiryModal({ productName, onClose }: EnquiryModalProps) {
+  const [submitted, setSubmitted] = useState(false);
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{ background: '#FFFFFF', width: '100%', maxWidth: '500px', borderTop: '4px solid #E55300' }}>
@@ -718,16 +730,31 @@ type ProductCardProps = {
   onEnquire: (name: string) => void;
 };
 
-function ProductCard({ product, onEnquire }: ProductCardProps) {  return (
+function ProductCard({ product, onEnquire }: ProductCardProps) {
+  const [imgError, setImgError] = useState(false);
+
+  return (
     <div className="product-card">
-      {/* Image placeholder */}
-      <div style={{ aspectRatio: '16/9', background: '#F7F7F7', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #E5E5E5' }}>
-        <div style={{ width: 52, height: 52, border: '1px solid #E5E5E5', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.5">
-            <path d="M3 17l4-8 4 4 3-5 4 9H3z" /><circle cx="18" cy="5" r="2" />
-          </svg>
-        </div>
-        <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#bbb' }}>Gulati Cranes</p>
+      {/* Image area */}
+      <div style={{ aspectRatio: '16/9', background: '#F7F7F7', overflow: 'hidden', borderBottom: '1px solid #E5E5E5', position: 'relative' }}>
+        {product.image && !imgError ? (
+          <img
+            src={product.image}
+            alt={product.name}
+            className="product-img"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          /* Fallback placeholder if image missing or fails to load */
+          <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 52, height: 52, border: '1px solid #E5E5E5', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.5">
+                <path d="M3 17l4-8 4 4 3-5 4 9H3z" /><circle cx="18" cy="5" r="2" />
+              </svg>
+            </div>
+            <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#bbb' }}>Gulati Cranes</p>
+          </div>
+        )}
       </div>
 
       <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', flex: 1 }}>
@@ -771,27 +798,26 @@ function ProductCard({ product, onEnquire }: ProductCardProps) {  return (
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function GulatiCranesSite() {
-  const [activeCategory, setActiveCategory] = useState('cranes');
-  const [activeSubtype, setActiveSubtype] = useState('pick_and_carry');
+  const [activeCategory, setActiveCategory] = useState<CategoryKey>('cranes');
+  const [activeSubtype, setActiveSubtype] = useState<string>('pick_and_carry');
   const [enquiryProduct, setEnquiryProduct] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-const handleCategoryChange = (catKey: string) => {
-      setActiveCategory(catKey);
+  const handleCategoryChange = (catKey: CategoryKey) => {
+    setActiveCategory(catKey);
     const firstSubtype = Object.keys(fleetData[catKey].subtypes)[0];
     setActiveSubtype(firstSubtype);
   };
 
   const currentSubtypes = fleetData[activeCategory].subtypes;
-  const currentProducts = currentSubtypes[activeSubtype]?.products || [];
+  const currentProducts = (currentSubtypes as Record<string, any>)[activeSubtype]?.products || [];
 
-const scrollTo = (id: string) => {
-      setMobileMenuOpen(false); // Close the mobile menu first
-
+  const scrollTo = (id: string) => {
+    setMobileMenuOpen(false);
     if (id === '/') {
-      window.location.href = '/'; // Redirect to root
+      window.location.href = '/';
     } else {
-      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }); // Scroll to section
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -840,40 +866,9 @@ const scrollTo = (id: string) => {
 
       {/* ── HERO ── */}
       <section id="hero" style={{ position: 'relative', minHeight: '88vh', display: 'flex', alignItems: 'center', background: '#0B1F3A', overflow: 'hidden' }}>
-        {/* Background texture */}
-        {/* Background Image */}
-        {/* Background Image */}
-<div
-  style={{
-    position: 'absolute',
-    inset: 0,
-    backgroundImage: 'url("https://images.unsplash.com/photo-1586458995526-09ce6839babe?q=80&w=2073&auto=format&fit=crop")',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat',
-    zIndex: 0,
-  }}
-/>
-
-{/* Dark Overlay */}
-{/* Neutral Dark Overlay */}
-<div
-  style={{
-    position: 'absolute',
-    inset: 0,
-    background: 'rgba(0, 0, 0, 0.55)', // clean black overlay
-    zIndex: 1,
-  }}
-/>{/* Orange Tint (very subtle) */}
-<div
-  style={{
-    position: 'absolute',
-    inset: 0,
-    background: 'linear-gradient(90deg, rgba(229,83,0,0.15) 0%, transparent 60%)',
-    zIndex: 2,
-  }}
-/>
-        {/* Left orange bar */}
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url("https://images.unsplash.com/photo-1586458995526-09ce6839babe?q=80&w=2073&auto=format&fit=crop")', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', zIndex: 0 }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0, 0, 0, 0.55)', zIndex: 1 }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(229,83,0,0.15) 0%, transparent 60%)', zIndex: 2 }} />
 
         <div style={{ position: 'relative', zIndex: 10, maxWidth: 1280, margin: '0 auto', padding: '80px 48px', width: '100%' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, border: '1px solid rgba(255,255,255,0.15)', padding: '6px 16px', marginBottom: 32 }}>
@@ -896,7 +891,6 @@ const scrollTo = (id: string) => {
           </div>
         </div>
 
-        {/* Bottom ticker */}
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.35)', borderTop: '1px solid rgba(255,255,255,0.06)', padding: '12px 24px', display: 'flex', gap: 0, overflowX: 'auto' }}>
           {['Crane Rental', 'Truck Cranes', 'Heavy Lift', 'Boom Lifts', 'Earthmoving', 'Forklift Rental', 'PAN India Service'].map((item, i) => (
             <span key={i} style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 14, paddingRight: 20 }}>
@@ -910,7 +904,7 @@ const scrollTo = (id: string) => {
       {/* ── TRUST BAR ── */}
       <div style={{ background: '#FFFFFF', borderBottom: '1px solid #E5E5E5' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', borderLeft: '1px solid #E5E5E5' }}>
-          {[['40+ Years', 'Proven Industrial Experience'], ['PAN India', 'Nationwide Deployment'], ['Grade A Fleet', 'Industrial Class Equipment']].map(([val, lbl], i) => (
+          {[['40+ Years', 'Proven Industrial Experience'], ['PAN India', 'Nationwide Deployment'], ['Grade A Fleet', 'Industrial Class Equipment']].map(([val, lbl]) => (
             <div key={val} style={{ padding: '28px 32px', textAlign: 'center', borderRight: '1px solid #E5E5E5' }}>
               <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: 28, color: '#111111', lineHeight: 1, marginBottom: 6 }}>{val}</p>
               <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#777777' }}>{lbl}</p>
@@ -963,7 +957,7 @@ const scrollTo = (id: string) => {
             ['Earthmoving', 'Loaders & More'],
             ['Aerial Platforms', 'Boom Lifts'],
             ['Utility Vehicles', 'Recovery & Towing'],
-          ].map(([label, sub], i) => (
+          ].map(([label, sub]) => (
             <div key={label} style={{ padding: '28px 0', textAlign: 'center', borderRight: '1px solid #E5E5E5' }}>
               <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 17, fontWeight: 800, textTransform: 'uppercase', color: '#111111', marginBottom: 4 }}>{label}</p>
               <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#E55300' }}>{sub}</p>
@@ -1013,7 +1007,7 @@ const scrollTo = (id: string) => {
             <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#777777', marginBottom: 10 }}>Category</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', borderBottom: '1px solid #E5E5E5' }}>
               {Object.entries(fleetData).map(([key, cat]) => (
-                <button key={key} onClick={() => handleCategoryChange(key)} className={`tab-btn ${activeCategory === key ? 'active' : ''}`}>{cat.label}</button>
+                <button key={key} onClick={() => handleCategoryChange(key as CategoryKey)} className={`tab-btn ${activeCategory === key ? 'active' : ''}`}>{cat.label}</button>
               ))}
             </div>
           </div>
@@ -1032,14 +1026,14 @@ const scrollTo = (id: string) => {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28, paddingBottom: 14, borderBottom: '1px solid #E5E5E5' }}>
               <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 12, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#555555' }}>
-                {currentSubtypes[activeSubtype]?.label}
+                {(currentSubtypes as Record<string, any>)[activeSubtype]?.label}
               </span>
               <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 11, fontWeight: 700, background: '#E55300', color: '#FFFFFF', padding: '2px 8px' }}>
                 {currentProducts.length} Products
               </span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
-              {currentProducts.map((product, i) => (
+              {currentProducts.map((product: Product, i: number) => (
                 <ProductCard key={i} product={product} onEnquire={setEnquiryProduct} />
               ))}
             </div>
@@ -1071,7 +1065,7 @@ const scrollTo = (id: string) => {
                 ['Reliable Support', 'Continuous after-sales and maintenance assistance.'],
                 ['All Terrains', 'Equipment suited for urban, industrial, and remote sites.'],
                 ['Nationwide Network', 'Operations covering all major Indian states.'],
-              ].map(([title, desc], i) => (
+              ].map(([title, desc]) => (
                 <div key={title} style={{ background: '#FFFFFF', border: '1px solid #E5E5E5', borderTop: '3px solid #E55300', padding: '22px 20px' }}>
                   <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: 16, textTransform: 'uppercase', color: '#111111', marginBottom: 8 }}>{title}</p>
                   <p style={{ fontSize: 13, color: '#555555', lineHeight: 1.6 }}>{desc}</p>
