@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, memo, type ReactNode } from "react";
+import React, { useState, useEffect, memo, useRef } from "react";
 
 /* ── TYPES ── */
 interface Product {
@@ -23,18 +23,7 @@ const parseSpecs = (rawSpecs: string[]): { label: string; value: string }[] =>
     return { label: label.trim(), value: rest.join(":").trim() };
   });
 
-/* ── IMAGE MAP ── */
-/*
-  PUT ALL YOUR IMAGE FILES FLAT INSIDE:  /public/products/
-  Example: /public/products/Husqvarna SMART E.jpg
-
-  ⚠️  Three filenames below were truncated in Finder — verify & rename if needed:
-      "Husqvarna BT 90 Screed Section (Petrol/Electric Compatible)" → check actual filename
-      "Husqvarna BT 90 Screed Section (1 m / 6.5 ft)"             → check actual filename
-      "Husqvarna Screed Blades"                                    → check actual filename
-*/
 const productImages: Record<string, string> = {
-  // ── Internal Vibrators ──────────────────────────────────────────────────────
   "Husqvarna SMART E":        "/products/Husqvarna SMART E.jpg",
   "Husqvarna SMART":          "/products/Husqvarna SMART.png",
   "Husqvarna AX":             "/products/Husqvarna AX.jpg",
@@ -52,8 +41,6 @@ const productImages: Record<string, string> = {
   "Husqvarna AZ":             "/products/Husqvarna AZ.jpg",
   "Husqvarna AY":             "/products/Husqvarna AY.png",
   "Husqvarna AME 2200":       "/products/Husqvarna AME 2200.jpg",
-
-  // ── External Vibrators ──────────────────────────────────────────────────────
   "Husqvarna EP 371 B":       "/products/Husqvarna EP 371 B.jpg",
   "Husqvarna EP 121 B":       "/products/Husqvarna EP 121 B.png",
   "Husqvarna ER 507 B":       "/products/Husqvarna ER 507 B.jpg",
@@ -62,37 +49,23 @@ const productImages: Record<string, string> = {
   "Husqvarna ER 505":         "/products/Husqvarna ER 505.jpg",
   "Husqvarna ER 405":         "/products/Husqvarna ER 405.png",
   "Husqvarna ER 305":         "/products/Husqvarna ER 305.jpg",
-
-  // ── Frequency Converters ────────────────────────────────────────────────────
   "Husqvarna CF 85 AS":       "/products/Husqvarna CF 85 AS.png",
   "Husqvarna CF 67 T":        "/products/Husqvarna CF 67 T.webp",
   "Husqvarna CF 25 M":        "/products/Husqvarna CF 25 M.png",
-
-  // ── Walk-behind Screeds ─────────────────────────────────────────────────────
   "Husqvarna BV 30":          "/products/Husqvarna BV 30.jpg",
   "Husqvarna BV 20 G":        "/products/Husqvarna BV 20 G.png",
-  "Husqvarna Screed Blades":  "/products/Husqvarna Screed Blades.jpg",   // ⚠️ verify filename
-
-  // ── Truss Screeds ───────────────────────────────────────────────────────────
+  "Husqvarna Screed Blades":  "/products/Husqvarna Screed Blades.jpg",
   "Husqvarna BT 90":          "/products/Husqvarna BT 90.png",
   "Husqvarna BT 90 Petrol":   "/products/Husqvarna BT 90 Petrol.jpeg",
-  "Husqvarna BT 90 Screed Section (Petrol/Electric Compatible)": "/products/Husqvarna BT 90 Screed Section (on).jpg",   // ⚠️ verify filename
-  "Husqvarna BT 90 Screed Section (1 m / 6.5 ft)":              "/products/Husqvarna BT 90 Screed Section (ft).jpg",   // ⚠️ verify filename
-
-  // ── Ride-on Trowels ─────────────────────────────────────────────────────────
+  "Husqvarna BT 90 Screed Section (Petrol/Electric Compatible)": "/products/Husqvarna BT 90 Screed Section.jpg",
+  "Husqvarna BT 90 Screed Section (1 m / 6.5 ft)":              "/products/Husqvarna BT 90 Screed Section (1 m  6.5 ft).jpg",
   "Husqvarna CRT 36 Ride-On Power Trowel":              "/products/Husqvarna CRT 36.png",
-
-  // ── Walk-behind Trowels ─────────────────────────────────────────────────────
   "Husqvarna MCT 36 Walk-Behind Power Trowel":          "/products/Husqvarna MCT 36.webp",
   "Husqvarna BG 375 Walk-Behind Power Trowel":          "/products/Husqvarna BG 375.webp",
   "Husqvarna BG 245 Walk-Behind Edger Power Trowel":    "/products/Husqvarna BG 245.png",
-
-  // ── Rammers ─────────────────────────────────────────────────────────────────
   "Husqvarna LT 8005 Rammer": "/products/Husqvarna LT 8005.jpg",
   "Husqvarna LT 6005":        "/products/Husqvarna LT 6005.webp",
   "Husqvarna LT 5005":        "/products/Husqvarna LT 5005.png",
-
-  // ── Forward Plate Compactors ────────────────────────────────────────────────
   "Husqvarna LF 75 PACE":           "/products/Husqvarna LF 75 PACE.png",
   "Husqvarna LF 100 PACE":          "/products/Husqvarna LF 100 PACE.jpg",
   "Husqvarna LF 160 (Electrical)":  "/products/Husqvarna LF 160 (Electrical).jpg",
@@ -101,16 +74,16 @@ const productImages: Record<string, string> = {
   "Husqvarna LF 60 LAT":            "/products/Husqvarna LF 60 LAT.png",
   "Husqvarna LFV 80":               "/products/Husqvarna LFV 80.png",
   "Husqvarna LFV 60":               "/products/Husqvarna LFV 60.webp",
-
-  // ── Reversible Plate Compactors ─────────────────────────────────────────────
   "Husqvarna LG 400":   "/products/Husqvarna LG 400.jpg",
   "Husqvarna LG 200":   "/products/Husqvarna LG 200.png",
   "Husqvarna LG 200 S": "/products/Husqvarna LG 200 S.jpg",
   "Husqvarna LH 700":   "/products/Husqvarna LH 700.jpg",
-
-  // ── Compaction Rollers ──────────────────────────────────────────────────────
   "Husqvarna LP 6500":  "/products/Husqvarna LP 6500.jpg",
 };
+
+/* ── PRODUCT ID HELPER ── */
+const getProductId = (catIdx: number, subIdx: number, groupIdx: number, productIdx: number) =>
+  `prod-${catIdx}-${subIdx}-${groupIdx}-${productIdx}`;
 
 /* ── ALL DATA ── */
 const machineData: MachineCategory[] = [
@@ -303,137 +276,143 @@ const GS = `
   img { display: block; }
 
   .btn-primary {
-    display: inline-block;
-    background: ${C.navy};
-    color: ${C.white};
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    padding: 12px 32px;
-    border: 2px solid ${C.navy};
-    cursor: pointer;
-    text-decoration: none;
+    display: inline-block; background: ${C.navy}; color: ${C.white};
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px;
+    letter-spacing: 0.05em; text-transform: uppercase; padding: 12px 32px;
+    border: 2px solid ${C.navy}; cursor: pointer; text-decoration: none;
   }
   .btn-primary:hover { background: #071428; border-color: #071428; }
 
   .btn-outline {
-    display: inline-block;
-    background: transparent;
-    color: ${C.white};
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    padding: 12px 32px;
-    border: 2px solid rgba(255,255,255,0.5);
-    cursor: pointer;
-    text-decoration: none;
+    display: inline-block; background: transparent; color: ${C.white};
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px;
+    letter-spacing: 0.05em; text-transform: uppercase; padding: 12px 32px;
+    border: 2px solid rgba(255,255,255,0.5); cursor: pointer; text-decoration: none;
   }
   .btn-outline:hover { border-color: ${C.white}; }
 
   .btn-orange {
-    display: inline-block;
-    background: ${C.orange};
-    color: ${C.white};
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    padding: 12px 32px;
-    border: 2px solid ${C.orange};
-    cursor: pointer;
-    text-decoration: none;
+    display: inline-block; background: ${C.orange}; color: ${C.white};
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px;
+    letter-spacing: 0.05em; text-transform: uppercase; padding: 12px 32px;
+    border: 2px solid ${C.orange}; cursor: pointer; text-decoration: none;
   }
   .btn-orange:hover { background: #c94700; border-color: #c94700; }
 
   .nav-link {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 600;
-    font-size: 13px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.6);
-    text-decoration: none;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 13px;
+    letter-spacing: 0.04em; text-transform: uppercase; color: rgba(255,255,255,0.6); text-decoration: none;
   }
   .nav-link:hover { color: ${C.white}; }
 
-  .prod-card {
-    background: ${C.white};
-    border: 1px solid ${C.border};
-    display: flex;
-    flex-direction: column;
-  }
+  .prod-card { background: ${C.white}; border: 1px solid ${C.border}; display: flex; flex-direction: column; }
 
   .enquire-btn {
-    width: 100%;
-    background: ${C.navy};
-    color: ${C.white};
-    border: none;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    padding: 13px;
-    cursor: pointer;
+    width: 100%; background: ${C.navy}; color: ${C.white}; border: none;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px;
+    letter-spacing: 0.05em; text-transform: uppercase; padding: 13px; cursor: pointer;
   }
   .enquire-btn:hover { background: #071428; }
 
   .inp {
-    width: 100%;
-    border: 1px solid ${C.border};
-    padding: 11px 13px;
-    font-size: 14px;
-    font-family: 'Barlow', sans-serif;
-    outline: none;
-    background: ${C.white};
-    color: ${C.text};
-    border-radius: 0;
+    width: 100%; border: 1px solid ${C.border}; padding: 11px 13px; font-size: 14px;
+    font-family: 'Barlow', sans-serif; outline: none; background: ${C.white};
+    color: ${C.text}; border-radius: 0;
   }
   .inp:focus { border-color: ${C.navy}; }
 
   .label-sm {
-    display: block;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: ${C.textLight};
-    margin-bottom: 5px;
+    display: block; font-family: 'Barlow Condensed', sans-serif; font-size: 11px;
+    font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: ${C.textLight}; margin-bottom: 5px;
   }
 
   .section-label {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: ${C.textLight};
-    margin-bottom: 8px;
-    display: block;
+    font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; color: ${C.textLight};
+    margin-bottom: 8px; display: block;
   }
 
   .section-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 800;
-    font-size: clamp(36px, 5vw, 56px);
-    text-transform: uppercase;
-    color: ${C.text};
-    line-height: 1;
-    margin-bottom: 16px;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+    font-size: clamp(36px, 5vw, 56px); text-transform: uppercase;
+    color: ${C.text}; line-height: 1; margin-bottom: 16px;
   }
 
-  .rep-card {
+  .rep-card { background: ${C.white}; border: 1px solid ${C.border}; padding: 20px 22px; }
+  .rep-card:hover { border-color: #bbb; }
+
+  /* ── MACHINES MEGA DROPDOWN ── */
+  .machines-nav-item { position: relative; }
+
+  .mega-dropdown {
+    position: absolute;
+    top: calc(100% + 3px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 780px;
     background: ${C.white};
     border: 1px solid ${C.border};
-    padding: 20px 22px;
+    border-top: 2px solid ${C.orange};
+    box-shadow: 0 8px 32px rgba(0,0,0,0.14);
+    display: flex;
+    z-index: 999;
   }
-  .rep-card:hover { border-color: #bbb; }
+
+  .mega-col {
+    flex: 1;
+    border-right: 1px solid ${C.border};
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .mega-col:last-child { border-right: none; }
+
+  .mega-col-header {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: ${C.textLight};
+    padding: 10px 14px 8px;
+    border-bottom: 1px solid ${C.border};
+    background: ${C.offWhite};
+  }
+
+  .mega-item {
+    display: block; width: 100%; text-align: left;
+    background: none; border: none; cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
+    text-transform: uppercase; color: ${C.textMid};
+    padding: 9px 14px;
+    border-bottom: 1px solid transparent;
+    border-left: 2px solid transparent;
+    transition: background 0.1s, color 0.1s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .mega-item:hover { background: #f0f4f8; color: ${C.navy}; border-left-color: ${C.navy}; }
+  .mega-item.active { background: #e8eef5; color: ${C.navy}; border-left-color: ${C.orange}; font-weight: 700; }
+
+  .mega-product-item {
+    display: block; width: 100%; text-align: left;
+    background: none; border: none; cursor: pointer;
+    font-family: 'Barlow', sans-serif;
+    font-size: 11.5px; font-weight: 500; color: ${C.textMid};
+    padding: 7px 14px;
+    border-bottom: 1px solid transparent;
+    border-left: 2px solid transparent;
+    transition: background 0.1s, color 0.1s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .mega-product-item:hover { background: #f0f4f8; color: ${C.navy}; border-left-color: ${C.orange}; }
+
+  .mega-products-scroll {
+    overflow-y: auto;
+    max-height: 320px;
+    flex: 1;
+  }
+  .mega-products-scroll::-webkit-scrollbar { width: 4px; }
+  .mega-products-scroll::-webkit-scrollbar-track { background: ${C.offWhite}; }
+  .mega-products-scroll::-webkit-scrollbar-thumb { background: #ccc; }
 
   @media (max-width: 767px) {
     .hide-mobile { display: none !important; }
@@ -441,13 +420,13 @@ const GS = `
     .mob-full { padding-left: 20px !important; padding-right: 20px !important; }
     .hero-h { font-size: 52px !important; }
     .footer-grid { grid-template-columns: 1fr 1fr !important; }
+    .mega-dropdown { display: none !important; }
   }
 `;
 
 /* ── ENQUIRY MODAL ── */
 const EnquiryModal = ({ productName, onClose }: { productName: string; onClose: () => void }) => {
   const [submitted, setSubmitted] = useState(false);
-
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 600, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
       <div onClick={e => e.stopPropagation()} style={{ background: C.white, width: "100%", maxWidth: 520, maxHeight: "90vh", overflowY: "auto", borderTop: `4px solid ${C.navy}` }}>
@@ -458,7 +437,6 @@ const EnquiryModal = ({ productName, onClose }: { productName: string; onClose: 
           </div>
           <button onClick={onClose} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 20, cursor: "pointer", lineHeight: 1 }}>✕</button>
         </div>
-
         {submitted ? (
           <div style={{ textAlign: "center", padding: "48px 32px" }}>
             <div style={{ width: 52, height: 52, background: C.navy, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: C.white, fontSize: 22 }}>✓</div>
@@ -469,33 +447,15 @@ const EnquiryModal = ({ productName, onClose }: { productName: string; onClose: 
         ) : (
           <div style={{ padding: "26px 26px 30px" }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
-              <div>
-                <label className="label-sm">Full Name *</label>
-                <input type="text" placeholder="Your name" className="inp" />
-              </div>
-              <div>
-                <label className="label-sm">Phone *</label>
-                <input type="tel" placeholder="+91 XXXXX XXXXX" className="inp" />
-              </div>
+              <div><label className="label-sm">Full Name *</label><input type="text" placeholder="Your name" className="inp" /></div>
+              <div><label className="label-sm">Phone *</label><input type="tel" placeholder="+91 XXXXX XXXXX" className="inp" /></div>
             </div>
-            <div style={{ marginBottom: 14 }}>
-              <label className="label-sm">Email *</label>
-              <input type="email" placeholder="you@company.com" className="inp" />
-            </div>
+            <div style={{ marginBottom: 14 }}><label className="label-sm">Email *</label><input type="email" placeholder="you@company.com" className="inp" /></div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
-              <div>
-                <label className="label-sm">Company</label>
-                <input type="text" placeholder="Company name" className="inp" />
-              </div>
-              <div>
-                <label className="label-sm">City</label>
-                <input type="text" placeholder="Your city" className="inp" />
-              </div>
+              <div><label className="label-sm">Company</label><input type="text" placeholder="Company name" className="inp" /></div>
+              <div><label className="label-sm">City</label><input type="text" placeholder="Your city" className="inp" /></div>
             </div>
-            <div style={{ marginBottom: 22 }}>
-              <label className="label-sm">Message</label>
-              <textarea rows={3} placeholder="Tell us about your requirement..." className="inp" style={{ resize: "none" }} />
-            </div>
+            <div style={{ marginBottom: 22 }}><label className="label-sm">Message</label><textarea rows={3} placeholder="Tell us about your requirement..." className="inp" style={{ resize: "none" }} /></div>
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={onClose} style={{ flex: 1, padding: 12, fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 700, fontSize: 12, letterSpacing: "0.05em", textTransform: "uppercase", background: "none", border: `1px solid ${C.border}`, color: C.textLight, cursor: "pointer" }}>Cancel</button>
               <button onClick={() => setSubmitted(true)} className="enquire-btn" style={{ flex: 2 }}>Send Enquiry</button>
@@ -508,32 +468,17 @@ const EnquiryModal = ({ productName, onClose }: { productName: string; onClose: 
 };
 
 /* ── PRODUCT CARD ── */
-const ProductCard = memo(({ product, onEnquire }: { product: Product; onEnquire: (name: string) => void }) => {
+const ProductCard = memo(({ product, productId, onEnquire }: { product: Product; productId: string; onEnquire: (name: string) => void }) => {
   const specs = parseSpecs(product.specs).slice(0, 3);
   const imgSrc = productImages[product.name];
   const [imgError, setImgError] = useState(false);
 
   return (
-    <div className="prod-card">
-      {/* Image area */}
-      <div style={{
-        aspectRatio: "4/3",
-        background: C.offWhite,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderBottom: `1px solid ${C.border}`,
-        overflow: "hidden",
-      }}>
+    <div id={productId} className="prod-card">
+      <div style={{ aspectRatio: "4/3", background: C.offWhite, display: "flex", alignItems: "center", justifyContent: "center", borderBottom: `1px solid ${C.border}`, overflow: "hidden" }}>
         {imgSrc && !imgError ? (
-          <img
-            src={imgSrc}
-            alt={product.name}
-            onError={() => setImgError(true)}
-            style={{ width: "100%", height: "100%", objectFit: "contain", padding: "16px" }}
-          />
+          <img src={imgSrc} alt={product.name} onError={() => setImgError(true)} style={{ width: "100%", height: "100%", objectFit: "contain", padding: "16px" }} />
         ) : (
-          /* Fallback placeholder shown when no image path or image fails to load */
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
             <div style={{ width: 56, height: 56, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.5">
@@ -547,12 +492,9 @@ const ProductCard = memo(({ product, onEnquire }: { product: Product; onEnquire:
           </div>
         )}
       </div>
-
-      {/* Body */}
       <div style={{ padding: "20px 20px 22px", display: "flex", flexDirection: "column", flexGrow: 1 }}>
         <h4 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 17, fontWeight: 800, textTransform: "uppercase", color: C.text, marginBottom: 8, lineHeight: 1.1 }}>{product.name}</h4>
         <p style={{ fontSize: 13, color: C.textMid, lineHeight: 1.65, marginBottom: 16 }}>{product.description}</p>
-
         {specs.length > 0 && (
           <div style={{ marginBottom: 16 }}>
             <p className="section-label">Key Specs</p>
@@ -566,14 +508,12 @@ const ProductCard = memo(({ product, onEnquire }: { product: Product; onEnquire:
             </div>
           </div>
         )}
-
         {product.useCase && (
           <div style={{ marginBottom: 18, padding: "10px 12px", background: C.offWhite, borderLeft: `3px solid ${C.navy}` }}>
             <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: C.navy, marginBottom: 3 }}>Application</p>
             <p style={{ fontSize: 12, color: C.textMid, lineHeight: 1.6 }}>{product.useCase}</p>
           </div>
         )}
-
         <div style={{ marginTop: "auto" }}>
           <button onClick={() => onEnquire(product.name)} className="enquire-btn">Enquire Now</button>
         </div>
@@ -583,12 +523,18 @@ const ProductCard = memo(({ product, onEnquire }: { product: Product; onEnquire:
 });
 ProductCard.displayName = "ProductCard";
 
-/* ── PRODUCTS SECTION (4-level hierarchy) ── */
-const ProductsSection = ({ onEnquire }: { onEnquire: (name: string) => void }) => {
-  const [activeCat, setActiveCat] = useState(0);
-  const [activeSub, setActiveSub] = useState(0);
-  const [activeGroup, setActiveGroup] = useState(0);
+/* ── PRODUCTS SECTION ── */
+interface ProductsSectionProps {
+  onEnquire: (name: string) => void;
+  activeCat: number;
+  activeSub: number;
+  activeGroup: number;
+  setActiveCat: (i: number) => void;
+  setActiveSub: (i: number) => void;
+  setActiveGroup: (i: number) => void;
+}
 
+const ProductsSection = ({ onEnquire, activeCat, activeSub, activeGroup, setActiveCat, setActiveSub, setActiveGroup }: ProductsSectionProps) => {
   const cat = machineData[activeCat];
   const sub = cat.subcategories[activeSub];
   const groups = sub.groups || [];
@@ -613,13 +559,7 @@ const ProductsSection = ({ onEnquire }: { onEnquire: (name: string) => void }) =
           <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginRight: 24, whiteSpace: "nowrap" }}>Category</span>
           <div style={{ display: "flex", flexWrap: "wrap" }}>
             {machineData.map((c, i) => (
-              <button key={i} onClick={() => handleCat(i)} style={{
-                fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: "0.04em",
-                textTransform: "uppercase", padding: "16px 24px", border: "none", cursor: "pointer",
-                background: activeCat === i ? C.white : "transparent",
-                color: activeCat === i ? C.navy : "rgba(255,255,255,0.45)",
-                borderRight: `1px solid rgba(255,255,255,0.05)`,
-              }}>
+              <button key={i} onClick={() => handleCat(i)} style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: "0.04em", textTransform: "uppercase", padding: "16px 24px", border: "none", cursor: "pointer", background: activeCat === i ? C.white : "transparent", color: activeCat === i ? C.navy : "rgba(255,255,255,0.45)", borderRight: `1px solid rgba(255,255,255,0.05)` }}>
                 {c.name}
               </button>
             ))}
@@ -632,14 +572,7 @@ const ProductsSection = ({ onEnquire }: { onEnquire: (name: string) => void }) =
           <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)", marginRight: 24, whiteSpace: "nowrap" }}>Type</span>
           <div style={{ display: "flex", flexWrap: "wrap" }}>
             {cat.subcategories.map((s, i) => (
-              <button key={i} onClick={() => handleSub(i)} style={{
-                fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: "0.04em",
-                textTransform: "uppercase", padding: "13px 20px", border: "none", cursor: "pointer",
-                background: "transparent",
-                color: activeSub === i ? C.white : "rgba(255,255,255,0.4)",
-                borderBottom: activeSub === i ? `2px solid ${C.white}` : "2px solid transparent",
-                borderRight: `1px solid rgba(255,255,255,0.05)`,
-              }}>
+              <button key={i} onClick={() => handleSub(i)} style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: "0.04em", textTransform: "uppercase", padding: "13px 20px", border: "none", cursor: "pointer", background: "transparent", color: activeSub === i ? C.white : "rgba(255,255,255,0.4)", borderBottom: activeSub === i ? `2px solid ${C.white}` : "2px solid transparent", borderRight: `1px solid rgba(255,255,255,0.05)` }}>
                 {s.name}
               </button>
             ))}
@@ -653,14 +586,7 @@ const ProductsSection = ({ onEnquire }: { onEnquire: (name: string) => void }) =
             <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: C.textLight, marginRight: 24, whiteSpace: "nowrap" }}>Group</span>
             <div style={{ display: "flex", flexWrap: "wrap" }}>
               {groups.map((g, i) => (
-                <button key={i} onClick={() => setActiveGroup(i)} style={{
-                  fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: "0.04em",
-                  textTransform: "uppercase", padding: "12px 18px", border: "none", cursor: "pointer",
-                  background: "transparent",
-                  color: activeGroup === i ? C.navy : C.textLight,
-                  borderBottom: activeGroup === i ? `2px solid ${C.navy}` : "2px solid transparent",
-                  borderRight: `1px solid ${C.border}`,
-                }}>
+                <button key={i} onClick={() => setActiveGroup(i)} style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: "0.04em", textTransform: "uppercase", padding: "12px 18px", border: "none", cursor: "pointer", background: "transparent", color: activeGroup === i ? C.navy : C.textLight, borderBottom: activeGroup === i ? `2px solid ${C.navy}` : "2px solid transparent", borderRight: `1px solid ${C.border}` }}>
                   {g.name.replace(/\s*\(\d+\)$/, "")}
                   {g.name.match(/\((\d+)\)$/) && (
                     <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color: activeGroup === i ? C.navy : "#aaa" }}>
@@ -686,7 +612,12 @@ const ProductsSection = ({ onEnquire }: { onEnquire: (name: string) => void }) =
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
             {products.map((p, i) => (
-              <ProductCard key={`${p.name}-${i}`} product={p} onEnquire={onEnquire} />
+              <ProductCard
+                key={`${p.name}-${i}`}
+                product={p}
+                productId={getProductId(activeCat, activeSub, activeGroup, i)}
+                onEnquire={onEnquire}
+              />
             ))}
           </div>
         </div>
@@ -694,6 +625,127 @@ const ProductsSection = ({ onEnquire }: { onEnquire: (name: string) => void }) =
     </section>
   );
 };
+
+/* ── MACHINES MEGA DROPDOWN ── */
+interface MachinesNavItemProps {
+  onNavigate: (catIdx: number, subIdx: number, groupIdx: number, productIdx: number) => void;
+}
+
+function MachinesNavItem({ onNavigate }: MachinesNavItemProps) {
+  const [open, setOpen] = useState(false);
+  const [hoveredCat, setHoveredCat] = useState(0);
+  const [hoveredSub, setHoveredSub] = useState(0);
+  const [hoveredGroup, setHoveredGroup] = useState(0);
+  const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const show = () => {
+    if (leaveTimer.current) clearTimeout(leaveTimer.current);
+    setOpen(true);
+  };
+  const hide = () => {
+    leaveTimer.current = setTimeout(() => setOpen(false), 150);
+  };
+
+  const handleCatHover = (i: number) => { setHoveredCat(i); setHoveredSub(0); setHoveredGroup(0); };
+  const handleSubHover = (i: number) => { setHoveredSub(i); setHoveredGroup(0); };
+  const handleGroupHover = (i: number) => { setHoveredGroup(i); };
+
+  const handleProductClick = (catIdx: number, subIdx: number, groupIdx: number, productIdx: number) => {
+    setOpen(false);
+    onNavigate(catIdx, subIdx, groupIdx, productIdx);
+  };
+
+  const currentCat = machineData[hoveredCat];
+  const currentSub = currentCat.subcategories[hoveredSub];
+  const currentGroups = currentSub.groups || [];
+  const currentGroup = currentGroups[hoveredGroup];
+  const currentProducts = currentGroup ? currentGroup.items : (currentSub.items || []);
+
+  return (
+    <div className="machines-nav-item" onMouseEnter={show} onMouseLeave={hide}>
+      <a href="#machines" className="nav-link" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        Machines
+        <svg width="9" height="6" viewBox="0 0 9 6" fill="none" style={{ marginTop: 1, transition: "transform .15s", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>
+          <path d="M1 1L4.5 5L8 1" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="square" strokeLinejoin="miter" />
+        </svg>
+      </a>
+
+      {open && (
+        <div className="mega-dropdown" onMouseEnter={show} onMouseLeave={hide}>
+
+          {/* COL 1 — Categories */}
+          <div className="mega-col">
+            <div className="mega-col-header">Category</div>
+            {machineData.map((cat, i) => (
+              <button
+                key={i}
+                className={`mega-item${hoveredCat === i ? " active" : ""}`}
+                onMouseEnter={() => handleCatHover(i)}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+
+          {/* COL 2 — Subcategories */}
+          <div className="mega-col">
+            <div className="mega-col-header">Type</div>
+            {currentCat.subcategories.map((sub, i) => (
+              <button
+                key={i}
+                className={`mega-item${hoveredSub === i ? " active" : ""}`}
+                onMouseEnter={() => handleSubHover(i)}
+              >
+                {sub.name}
+              </button>
+            ))}
+          </div>
+
+          {/* COL 3 — Groups */}
+          <div className="mega-col">
+            <div className="mega-col-header">Group</div>
+            {currentGroups.length > 0 ? (
+              currentGroups.map((g, i) => (
+                <button
+                  key={i}
+                  className={`mega-item${hoveredGroup === i ? " active" : ""}`}
+                  onMouseEnter={() => handleGroupHover(i)}
+                >
+                  {g.name.replace(/\s*\(\d+\)$/, "")}
+                </button>
+              ))
+            ) : (
+              <div style={{ padding: "10px 14px", fontFamily: "'Barlow Condensed',sans-serif", fontSize: 11, color: C.textLight, fontStyle: "italic" }}>
+                No groups
+              </div>
+            )}
+          </div>
+
+          {/* COL 4 — Products */}
+          <div className="mega-col" style={{ flex: 1.4 }}>
+            <div className="mega-col-header" style={{ display: "flex", justifyContent: "space-between" }}>
+              <span>Products</span>
+              <span style={{ color: C.navy, fontWeight: 700 }}>{currentProducts.length}</span>
+            </div>
+            <div className="mega-products-scroll">
+              {currentProducts.map((p, i) => (
+                <button
+                  key={i}
+                  className="mega-product-item"
+                  onClick={() => handleProductClick(hoveredCat, hoveredSub, hoveredGroup, i)}
+                  title={p.name}
+                >
+                  {p.name.replace("Husqvarna ", "")}
+                </button>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      )}
+    </div>
+  );
+}
 
 /* ── CONTACT FORM ── */
 const ContactForm = () => (
@@ -725,55 +777,94 @@ const RepCard = ({ rep }: { rep: Rep }) => (
 export default function HusqvarnaPage() {
   const [enquiryProduct, setEnquiryProduct] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const [windowWidth, setWindowWidth] = useState(0);
 
+  // Lifted state for ProductsSection so dropdown can control it
+  const [activeCat, setActiveCat] = useState(0);
+  const [activeSub, setActiveSub] = useState(0);
+  const [activeGroup, setActiveGroup] = useState(0);
+
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
     const onResize = () => setWindowWidth(window.innerWidth);
     onResize();
-    window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
-    return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onResize); };
+    return () => window.removeEventListener("resize", onResize);
   }, []);
 
   const isMobile = windowWidth > 0 && windowWidth < 768;
-  
-const NAV = [
-  ["Home", "/"],   // 👈 added this
-  ["About", "#about"],
-  ["Machines", "#machines"],
-  ["Services", "#services"],
-  ["Contact", "#contact"]
-];  return (
+
+  const handleDropdownNavigate = (catIdx: number, subIdx: number, groupIdx: number, productIdx: number) => {
+    // 1. Set all filters
+    setActiveCat(catIdx);
+    setActiveSub(subIdx);
+    setActiveGroup(groupIdx);
+
+    // 2. Scroll to #machines section first, then to the specific card
+    setTimeout(() => {
+      const productId = getProductId(catIdx, subIdx, groupIdx, productIdx);
+      const el = document.getElementById(productId);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else {
+        // Fallback: scroll to machines section
+        const section = document.getElementById("machines");
+        if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 80);
+  };
+
+  const NAV_STATIC_LEFT = [
+    ["Home", "/"],
+    ["About", "#about"],
+  ];
+  const NAV_STATIC_RIGHT = [
+    ["Services", "#services"],
+    ["Contact", "#contact"],
+  ];
+  const ALL_NAV = [["Home", "/"], ["About", "#about"], ["Machines", "#machines"], ["Services", "#services"], ["Contact", "#contact"]];
+
+  return (
     <main style={{ background: C.white, color: C.text, fontFamily: "'Barlow', sans-serif", minHeight: "100vh" }}>
       <style>{GS}</style>
 
       {enquiryProduct && <EnquiryModal productName={enquiryProduct} onClose={() => setEnquiryProduct(null)} />}
 
       {/* ── NAVBAR ── */}
-      <nav style={{ position: "sticky", top: 0, zIndex: 200, background: C.navy, borderBottom: `3px solid ${C.orange}` }}>
-        <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 32px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <a href="#hero" style={{ textDecoration: "none" }}>            
+      <nav style={{ position: "sticky", top: 0, zIndex: 400, background: C.navy, borderBottom: `3px solid ${C.orange}`, overflow: "visible" }}>
+        <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 32px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", overflow: "visible" }}>
+          <a href="#hero" style={{ textDecoration: "none" }}>
             <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: 22, textTransform: "uppercase", color: C.white, lineHeight: 1 }}>HUSQVARNA</div>
             <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 9, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>Construction India</div>
           </a>
-          <div className="hide-mobile" style={{ display: "flex", gap: 32 }}>
-            {NAV.map(([label, href]) => (
+
+          {/* Desktop nav */}
+          <div className="hide-mobile" style={{ display: "flex", gap: 32, alignItems: "center", overflow: "visible" }}>
+            {NAV_STATIC_LEFT.map(([label, href]) => (
+              <a key={label} href={href} className="nav-link">{label}</a>
+            ))}
+            <MachinesNavItem onNavigate={handleDropdownNavigate} />
+            {NAV_STATIC_RIGHT.map(([label, href]) => (
               <a key={label} href={href} className="nav-link">{label}</a>
             ))}
           </div>
+
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <a href="#contact" className="btn-orange" style={{ fontSize: 12, padding: "9px 22px" }}>Get Quote</a>
             {isMobile && (
-              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ background: "none", border: "none", color: C.white, fontSize: 22, cursor: "pointer" }}>{mobileMenuOpen ? "✕" : "☰"}</button>
+              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ background: "none", border: "none", color: C.white, fontSize: 22, cursor: "pointer" }}>
+                {mobileMenuOpen ? "✕" : "☰"}
+              </button>
             )}
           </div>
         </div>
+
+        {/* Mobile menu */}
         {mobileMenuOpen && (
           <div style={{ background: "#071428", borderTop: `1px solid rgba(255,255,255,0.06)` }}>
-            {NAV.map(([label, href]) => (
-              <a key={label} href={href} onClick={() => setMobileMenuOpen(false)} style={{ display: "block", padding: "13px 24px", fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(255,255,255,0.6)", textDecoration: "none", borderBottom: `1px solid rgba(255,255,255,0.04)` }}>{label}</a>
+            {ALL_NAV.map(([label, href]) => (
+              <a key={label} href={href} onClick={() => setMobileMenuOpen(false)} style={{ display: "block", padding: "13px 24px", fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(255,255,255,0.6)", textDecoration: "none", borderBottom: `1px solid rgba(255,255,255,0.04)` }}>
+                {label}
+              </a>
             ))}
           </div>
         )}
@@ -781,11 +872,7 @@ const NAV = [
 
       {/* ── HERO ── */}
       <section id="hero" style={{ position: "relative", minHeight: "88vh", display: "flex", alignItems: "center", overflow: "hidden", background: C.navy }}>
-        <img
-          src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1600&q=80&auto=format&fit=crop"
-          alt="Construction site"
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 40%", opacity: 0.25 }}
-        />
+        <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1600&q=80&auto=format&fit=crop" alt="Construction site" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 40%", opacity: 0.25 }} />
         <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: C.orange }} />
         <div style={{ position: "relative", zIndex: 10, maxWidth: 1400, margin: "0 auto", padding: "0 60px 80px", width: "100%" }}>
           <span style={{ display: "inline-block", fontFamily: "'Barlow Condensed',sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: 28, border: `1px solid rgba(255,255,255,0.15)`, padding: "5px 14px" }}>
@@ -858,7 +945,15 @@ const NAV = [
       </section>
 
       {/* ── PRODUCTS ── */}
-      <ProductsSection onEnquire={(name) => setEnquiryProduct(name)} />
+      <ProductsSection
+        onEnquire={(name) => setEnquiryProduct(name)}
+        activeCat={activeCat}
+        activeSub={activeSub}
+        activeGroup={activeGroup}
+        setActiveCat={(i) => { setActiveCat(i); setActiveSub(0); setActiveGroup(0); }}
+        setActiveSub={(i) => { setActiveSub(i); setActiveGroup(0); }}
+        setActiveGroup={setActiveGroup}
+      />
 
       {/* ── SERVICES ── */}
       <section id="services" style={{ background: C.white, borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, padding: "72px 48px" }}>

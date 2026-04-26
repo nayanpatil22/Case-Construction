@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 /* ─────────────────────────────────────────
    DESIGN TOKENS
@@ -102,6 +102,42 @@ const GS = `
     color: ${T.navy}; transition: color .2s;
   }
   .nav-link:hover { color: ${T.orange}; }
+
+  /* CRANE DROPDOWN */
+  .crane-nav-item {
+    position: relative;
+  }
+  .crane-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: ${T.bg};
+    border: 1px solid ${T.border};
+    border-top: 2px solid ${T.navy};
+    min-width: 180px;
+    z-index: 400;
+    box-shadow: 0 4px 16px rgba(11,31,58,.10);
+  }
+  .crane-dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: ${T.navy};
+    background: none;
+    border: none;
+    border-bottom: 1px solid ${T.border};
+    text-align: left;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  .crane-dropdown-item:last-child { border-bottom: none; }
+  .crane-dropdown-item:hover { background: ${T.bgGrey}; color: ${T.orange}; }
 
   /* CRANE CARD */
   .crane-card {
@@ -386,7 +422,7 @@ function CraneCard({ crane, onEnquire }: CraneCardProps) {
   const [imgError, setImgError] = useState(false);
 
   return (
-    <div className="crane-card">
+    <div id={`crane-${crane.id}`} className="crane-card">
       {/* Image */}
       <div style={{ height: 200, overflow: "hidden", background: T.bgGrey, position: "relative" }}>
         {!imgError ? (
@@ -397,7 +433,6 @@ function CraneCard({ crane, onEnquire }: CraneCardProps) {
             onError={() => setImgError(true)}
           />
         ) : (
-          /* Fallback placeholder */
           <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.5">
               <path d="M3 17l4-8 4 4 3-5 4 9H3z" /><circle cx="18" cy="5" r="2" />
@@ -410,10 +445,7 @@ function CraneCard({ crane, onEnquire }: CraneCardProps) {
 
       {/* Body */}
       <div style={{ padding: "22px 20px 0", flexGrow: 1, display: "flex", flexDirection: "column" }}>
-        {/* Name */}
         <h3 style={{ fontFamily: "'Oswald',sans-serif", fontSize: 20, fontWeight: 700, textTransform: "uppercase", color: T.navy, marginBottom: 12, lineHeight: 1.1 }}>{crane.name}</h3>
-
-        {/* Description */}
         <p style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.72, marginBottom: 20 }}>{crane.description}</p>
 
         {/* Specs */}
@@ -469,6 +501,64 @@ function CraneCard({ crane, onEnquire }: CraneCardProps) {
 }
 
 /* ─────────────────────────────────────────
+   CRANES NAV ITEM WITH DROPDOWN
+───────────────────────────────────────── */
+function CranesNavItem() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleMouseEnter = () => {
+    if (leaveTimer.current) clearTimeout(leaveTimer.current);
+    setOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    leaveTimer.current = setTimeout(() => setOpen(false), 120);
+  };
+
+  const scrollToCrane = (id: string) => {
+    setOpen(false);
+    const el = document.getElementById(`crane-${id}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  return (
+    <div
+      ref={ref}
+      className="crane-nav-item"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <a href="#cranes" className="nav-link" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        Cranes
+        <svg
+          width="10" height="10" viewBox="0 0 10 10" fill="none"
+          style={{ marginTop: 1, transition: "transform .15s", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+        >
+          <path d="M2 3.5L5 6.5L8 3.5" stroke={T.navy} strokeWidth="1.5" strokeLinecap="square" />
+        </svg>
+      </a>
+      {open && (
+        <div className="crane-dropdown">
+          {cranes.map((c) => (
+            <button
+              key={c.id}
+              className="crane-dropdown-item"
+              onClick={() => scrollToCrane(c.id)}
+            >
+              {c.shortName}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
    MAIN PAGE
 ───────────────────────────────────────── */
 export default function FrannaLight() {
@@ -483,7 +573,7 @@ export default function FrannaLight() {
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
-  const NAV = [["Home","#top"],["About","#about"],["Cranes","#cranes"],["Services","#services"],["Contact","#contact"]];
+  const NAV_STATIC = [["Home","#top"],["About","#about"],["Services","#services"],["Contact","#contact"]];
 
   return (
     <main id="top" style={{ background: T.bg, color: T.text, minHeight: "100vh", overflowX: "hidden" }}>
@@ -492,12 +582,16 @@ export default function FrannaLight() {
 
       {/* ══ NAVBAR ══════════════════════════════════════════ */}
       <nav style={{
-        position: "sticky", top: 0, zIndex: 300,
-        background: T.bg,
-        borderBottom: `1px solid ${scrolled ? T.border : "transparent"}`,
-        boxShadow: scrolled ? "0 2px 12px rgba(0,0,0,.06)" : "none",
-        transition: "box-shadow .25s, border-color .25s",
-      }}>
+  position: "fixed",
+  top: 0,
+  left: 0,
+  right: 0,
+  width: "100%",
+  zIndex: 300,
+  background: T.bg,
+  borderBottom: `1px solid ${scrolled ? T.border : "transparent"}`,
+  boxShadow: scrolled ? "0 2px 12px rgba(0,0,0,.06)" : "none",
+}}>
         <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 40px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           {/* Logo */}
           <a href="#top" style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
@@ -506,7 +600,11 @@ export default function FrannaLight() {
           </a>
           {/* Desktop nav */}
           <div className="mob-hide" style={{ display: "flex", gap: 36, alignItems: "center" }}>
-            {NAV.map(([l, h]) => <a key={l} href={h} className="nav-link">{l}</a>)}
+            <a href="/" className="nav-link">Home</a>
+            <a href="#about" className="nav-link">About</a>
+            <CranesNavItem />
+            <a href="#services" className="nav-link">Services</a>
+            <a href="#contact" className="nav-link">Contact</a>
           </div>
           <div className="mob-hide">
             <a href="#contact" className="btn-navy" style={{ fontSize: 12, padding: "9px 22px" }}>Get Quote</a>
@@ -517,7 +615,24 @@ export default function FrannaLight() {
         </div>
         {mobileOpen && (
           <div style={{ background: T.bg, borderTop: `1px solid ${T.border}`, padding: "8px 0" }}>
-            {NAV.map(([l, h]) => <a key={l} href={h} onClick={() => setMobileOpen(false)} style={{ display: "block", padding: "12px 40px", fontFamily: "'Oswald',sans-serif", fontWeight: 500, fontSize: 13, letterSpacing: ".08em", textTransform: "uppercase", color: T.navy, borderBottom: `1px solid ${T.border}` }}>{l}</a>)}
+            <a href="#top" onClick={() => setMobileOpen(false)} style={{ display: "block", padding: "12px 40px", fontFamily: "'Oswald',sans-serif", fontWeight: 500, fontSize: 13, letterSpacing: ".08em", textTransform: "uppercase", color: T.navy, borderBottom: `1px solid ${T.border}` }}>Home</a>
+            <a href="#about" onClick={() => setMobileOpen(false)} style={{ display: "block", padding: "12px 40px", fontFamily: "'Oswald',sans-serif", fontWeight: 500, fontSize: 13, letterSpacing: ".08em", textTransform: "uppercase", color: T.navy, borderBottom: `1px solid ${T.border}` }}>About</a>
+            <a href="#cranes" onClick={() => setMobileOpen(false)} style={{ display: "block", padding: "12px 40px", fontFamily: "'Oswald',sans-serif", fontWeight: 500, fontSize: 13, letterSpacing: ".08em", textTransform: "uppercase", color: T.navy, borderBottom: `1px solid ${T.border}` }}>Cranes</a>
+            {cranes.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => {
+                  setMobileOpen(false);
+                  const el = document.getElementById(`crane-${c.id}`);
+                  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                style={{ display: "block", width: "100%", padding: "10px 56px", fontFamily: "'Oswald',sans-serif", fontWeight: 500, fontSize: 12, letterSpacing: ".08em", textTransform: "uppercase", color: T.textLight, background: T.bgGrey, border: "none", borderBottom: `1px solid ${T.border}`, textAlign: "left", cursor: "pointer" }}
+              >
+                — {c.shortName}
+              </button>
+            ))}
+            <a href="#services" onClick={() => setMobileOpen(false)} style={{ display: "block", padding: "12px 40px", fontFamily: "'Oswald',sans-serif", fontWeight: 500, fontSize: 13, letterSpacing: ".08em", textTransform: "uppercase", color: T.navy, borderBottom: `1px solid ${T.border}` }}>Services</a>
+            <a href="#contact" onClick={() => setMobileOpen(false)} style={{ display: "block", padding: "12px 40px", fontFamily: "'Oswald',sans-serif", fontWeight: 500, fontSize: 13, letterSpacing: ".08em", textTransform: "uppercase", color: T.navy, borderBottom: `1px solid ${T.border}` }}>Contact</a>
           </div>
         )}
       </nav>
@@ -526,7 +641,6 @@ export default function FrannaLight() {
       <section style={{ background: T.bg, padding: "72px 40px 80px", borderBottom: `1px solid ${T.border}` }} className="mob-pad">
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
           <div className="hero-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }}>
-            {/* Left */}
             <div>
               <span className="eyebrow">Pick &amp; Carry Cranes</span>
               <h1 style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: "clamp(44px,6vw,72px)", textTransform: "uppercase", color: T.navy, lineHeight: 1, marginBottom: 20, letterSpacing: ".02em" }}>
@@ -541,7 +655,6 @@ export default function FrannaLight() {
                 <a href="#contact" className="btn-outline">Contact Us</a>
               </div>
             </div>
-            {/* Right – crane image */}
             <div style={{ position: "relative" }}>
               <div style={{ background: T.bgGrey, overflow: "hidden", aspectRatio: "4/3" }}>
                 <img
@@ -550,7 +663,6 @@ export default function FrannaLight() {
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               </div>
-              {/* Floating stat */}
               <div style={{ position: "absolute", bottom: -1, left: -1, background: T.navy, color: "#fff", padding: "16px 22px" }}>
                 <div style={{ fontFamily: "'Oswald',sans-serif", fontSize: 28, fontWeight: 700, lineHeight: 1 }}>40+</div>
                 <div style={{ fontFamily: "'Oswald',sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: ".12em", textTransform: "uppercase", color: "rgba(255,255,255,.55)", marginTop: 2 }}>Years of Engineering</div>
@@ -564,7 +676,6 @@ export default function FrannaLight() {
       <section id="about" style={{ background: T.bgGrey, padding: "80px 40px", borderBottom: `1px solid ${T.border}` }} className="mob-pad">
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
           <div className="about-grid" style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: 72, alignItems: "start" }}>
-            {/* Left */}
             <div>
               <span className="eyebrow">About Franna</span>
               <h2 className="section-title">Built for the Real World.</h2>
@@ -576,7 +687,6 @@ export default function FrannaLight() {
                 For over 40 years, Franna has been a global leader in crane manufacturing, trusted by construction companies, mining operators, and industrial facilities on every continent.
               </p>
             </div>
-            {/* Right – stats */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: T.borderMid }}>
               {[
                 { num: "40+",    label: "Years Experience",    sub: "Global leader since 1985" },
@@ -616,7 +726,6 @@ export default function FrannaLight() {
       {/* ══ CRANES ══════════════════════════════════════════ */}
       <section id="cranes" style={{ background: T.bgGrey, padding: "80px 40px", borderBottom: `1px solid ${T.border}` }} className="mob-pad">
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-          {/* Header */}
           <div style={{ marginBottom: 40, paddingBottom: 32, borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
             <div>
               <span className="eyebrow">Our Fleet</span>
@@ -627,7 +736,6 @@ export default function FrannaLight() {
             </p>
           </div>
 
-          {/* 4-column grid */}
           <div className="cranes-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 20, alignItems: "start" }}>
             {cranes.map(c => <CraneCard key={c.id} crane={c} onEnquire={setEnquiry} />)}
           </div>
@@ -638,7 +746,6 @@ export default function FrannaLight() {
       <section id="services" style={{ background: T.bg, padding: "80px 40px", borderBottom: `1px solid ${T.border}` }} className="mob-pad">
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
           <div className="svc-grid" style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 64, alignItems: "start" }}>
-            {/* Left */}
             <div>
               <span className="eyebrow">Service Solutions</span>
               <h2 className="section-title">Beyond the Crane.</h2>
@@ -648,7 +755,6 @@ export default function FrannaLight() {
               </p>
               <a href="#contact" className="btn-navy">Contact Service Team</a>
             </div>
-            {/* Right */}
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {services.map((s, i) => (
                 <div key={i} className="svc-card">
@@ -665,7 +771,6 @@ export default function FrannaLight() {
       <section id="contact" style={{ background: T.bgGrey, padding: "80px 40px", borderBottom: `1px solid ${T.border}` }} className="mob-pad">
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
           <div className="contact-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 64, alignItems: "start" }}>
-            {/* Left */}
             <div>
               <span className="eyebrow">Get in Touch</span>
               <h2 className="section-title">Talk to Our Team.</h2>
@@ -689,7 +794,6 @@ export default function FrannaLight() {
               </div>
             </div>
 
-            {/* Right – form */}
             <div style={{ background: T.bg, border: `1px solid ${T.border}`, borderTop: `3px solid ${T.navy}`, padding: "32px" }}>
               {contactDone ? (
                 <div style={{ textAlign: "center", padding: "40px 20px" }}>

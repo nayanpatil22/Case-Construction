@@ -1,7 +1,8 @@
 'use client';
 
+import React from 'react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -139,9 +140,9 @@ function EnquiryModal({
 }
 
 // ─── FLEET CARD ───────────────────────────────────────────────────────────────
-function FleetCard({ model, onEnquire }: { model: FleetModel; onEnquire: () => void }) {
+function FleetCard({ model, onEnquire, cardId }: { model: FleetModel; onEnquire: () => void; cardId: string }) {
   return (
-    <div className="bg-white border border-slate-200 flex flex-col">
+    <div id={cardId} className="bg-white border border-slate-200 flex flex-col">
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
         <Image
           src={model.image}
@@ -208,7 +209,6 @@ function FleetCard({ model, onEnquire }: { model: FleetModel; onEnquire: () => v
 // ─── COMPARISON TABLE ─────────────────────────────────────────────────────────
 function ComparisonTable() {
   const rows: { section: string; spec: string; vals: string[] }[] = [
-    // Engine
     { section: 'Engine', spec: 'Make', vals: ['CNH (India)', 'CNH (India)', 'CNH (India)'] },
     { section: 'Engine', spec: 'Cylinders', vals: ['4', '4', '4'] },
     { section: 'Engine', spec: 'Displacement (L)', vals: ['2.80', '2.80', '2.80'] },
@@ -217,21 +217,18 @@ function ComparisonTable() {
     { section: 'Engine', spec: 'Emission Level', vals: ['CEV Stage-V', 'CEV Stage-V', 'CEV Stage-V'] },
     { section: 'Engine', spec: 'Max. Gross Power (kW/hp)', vals: ['54.6 / 74', '54.6 / 74', '54.6 / 74'] },
     { section: 'Engine', spec: 'Max. Gross Torque (Nm)', vals: ['375 @ 1400 rpm', '375 @ 1400 rpm', '375 @ 1400 rpm'] },
-    // Dimensions & Weight
     { section: 'Dimensions & Weight', spec: 'Operating Weight (kg)', vals: ['7600', '7700', '7800 / 7700'] },
     { section: 'Dimensions & Weight', spec: 'Transport Length (m)', vals: ['5.88', '5.96', '6.06'] },
     { section: 'Dimensions & Weight', spec: 'Width over Stabilizer (m)', vals: ['2.27', '2.27', '2.27'] },
     { section: 'Dimensions & Weight', spec: 'Height to Top of Cabin (m)', vals: ['2.83', '2.83', '2.83'] },
     { section: 'Dimensions & Weight', spec: 'Wheelbase (m)', vals: ['2.18', '2.18', '2.18'] },
     { section: 'Dimensions & Weight', spec: 'Ground Clearance (m)', vals: ['0.38', '0.38', '0.38'] },
-    // Loader
     { section: 'Loader', spec: 'Dump Height (m)', vals: ['2.73', '2.73', '2.72'] },
     { section: 'Loader', spec: 'Load Over Height (m)', vals: ['3.3', '3.3', '3.3'] },
     { section: 'Loader', spec: 'Bucket Capacity (m³)', vals: ['1.1', '1.1', '1.2'] },
     { section: 'Loader', spec: 'Max. Payload (kg)', vals: ['1925', '1925', '2050'] },
     { section: 'Loader', spec: 'Max. Lifting Capacity (kg)', vals: ['3430', '3650', '3650'] },
     { section: 'Loader', spec: 'Bucket Breakout Force (kgf)', vals: ['5400', '5650', '5000'] },
-    // Backhoe
     { section: 'Backhoe', spec: 'Max. Dig Depth (m)', vals: ['4.4', '4.70', '4.7'] },
     { section: 'Backhoe', spec: 'Reach at Ground (m)', vals: ['5.63', '5.90', '5.90'] },
     { section: 'Backhoe', spec: 'Max. Working Height (m)', vals: ['5.5', '5.7', '5.7'] },
@@ -239,15 +236,12 @@ function ComparisonTable() {
     { section: 'Backhoe', spec: 'Bucket Rotation (deg)', vals: ['204° & 160°', '204° & 160°', '204° & 160°'] },
     { section: 'Backhoe', spec: 'Max. Lift Capacity (kg)', vals: ['1417', '1477', '1477'] },
     { section: 'Backhoe', spec: 'Dipper Tearout Force (kgf)', vals: ['3200', '3900', '3900'] },
-    // Hydraulics
     { section: 'Hydraulics', spec: 'System Type', vals: ['Open Center LS', 'Open Center LS', 'Open Center LS'] },
     { section: 'Hydraulics', spec: 'Hydraulic Type', vals: ['Variable Displacement', 'Variable Displacement', 'Variable Displacement'] },
     { section: 'Hydraulics', spec: 'Pump Flow (lpm)', vals: ['119', '143', '143'] },
     { section: 'Hydraulics', spec: 'Relief Pressure (bar)', vals: ['235', '250', '250'] },
-    // Drivetrain
     { section: 'Drivetrain', spec: 'Transmission', vals: ['4F-4R Power Shuttle', '4F-4R Power Shuttle', '4F-4R Power Shuttle'] },
     { section: 'Drivetrain', spec: 'Drive Options', vals: ['2WD / 4WD', '2WD / 4WD', '2WD / 4WD'] },
-    // Travel Speed
     { section: 'Travel Speed', spec: 'Forward 1st/2nd/3rd/4th (kmph)', vals: ['5.7 / 9.3 / 19.5 / 34', '5.7 / 9.3 / 19.5 / 34', '5.7 / 9.3 / 19.5 / 34'] },
     { section: 'Travel Speed', spec: 'Reverse 1st/2nd (kmph)', vals: ['7.0 / 11.5', '7.0 / 11.5', '7.0 / 11.5'] },
   ];
@@ -326,11 +320,19 @@ function ComparisonTable() {
   );
 }
 
+// ─── CARD ID HELPER ───────────────────────────────────────────────────────────
+function getCardId(categoryId: string, modelName: string) {
+  return `card-${categoryId}-${modelName.toLowerCase().replace(/\s+/g, '-')}`;
+}
+
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function CaseConstructionSite() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('backhoe');
   const [enquiryModel, setEnquiryModel] = useState<string | null>(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [hoveredCategory, setHoveredCategory] = useState('backhoe');
+  const dropdownTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fleetData: Record<string, FleetModel[]> = {
     backhoe: [
@@ -391,7 +393,6 @@ export default function CaseConstructionSite() {
         image: '/images/fleet/851NX_96x49_5x3.jpg',
         hp: '74 hp',
         weight: '7,800 kg',
-        // FIXED: escaped the apostrophe in "CASE's"
         desc:
           'The 851NX is CASE\'s highest-spec backhoe loader, offering the largest loader bucket in class at 1.2 m³, maximum payload of 2,050 kg, and a wide selection of backhoe bucket sizes for all applications.',
         highlights: [
@@ -606,6 +607,36 @@ export default function CaseConstructionSite() {
     },
   ];
 
+  function handleProductNavClick(categoryId: string, modelName: string) {
+    setDropdownOpen(false);
+    setActiveTab(categoryId);
+    const cardId = getCardId(categoryId, modelName);
+    // Wait for tab switch + render, then scroll
+    setTimeout(() => {
+      const el = document.getElementById(cardId);
+      if (el) {
+        const fleetSection = document.getElementById('fleet');
+        if (fleetSection) {
+          fleetSection.scrollIntoView({ behavior: 'smooth' });
+          setTimeout(() => {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 350);
+        }
+      }
+    }, 80);
+  }
+
+  function handleMouseEnterNav() {
+    if (dropdownTimeout.current) clearTimeout(dropdownTimeout.current);
+    setDropdownOpen(true);
+  }
+
+  function handleMouseLeaveNav() {
+    dropdownTimeout.current = setTimeout(() => {
+      setDropdownOpen(false);
+    }, 120);
+  }
+
   return (
     <main className="bg-white font-sans text-slate-900 selection:bg-orange-600 selection:text-white">
 
@@ -628,10 +659,80 @@ export default function CaseConstructionSite() {
               Construction India
             </span>
           </button>
-          <div className="hidden md:flex gap-6 lg:gap-10 text-[10px] md:text-[11px] font-bold uppercase tracking-widest text-slate-500">
+          <div className="hidden md:flex gap-6 lg:gap-10 text-[10px] md:text-[11px] font-bold uppercase tracking-widest text-slate-500 items-center">
             <a href="/" className="hover:text-orange-600">Home</a>
             <a href="#about" className="hover:text-orange-600">About</a>
-            <a href="#fleet" className="hover:text-orange-600">Products</a>
+
+            {/* PRODUCTS DROPDOWN */}
+            <div
+              className="relative"
+              onMouseEnter={handleMouseEnterNav}
+              onMouseLeave={handleMouseLeaveNav}
+            >
+              <a
+                href="#fleet"
+                className="hover:text-orange-600 flex items-center gap-1"
+                onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                  e.preventDefault();
+                  document.getElementById('fleet')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                Products
+                <svg
+                  className="w-3 h-3 mt-0.5 text-slate-400"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </a>
+
+              {dropdownOpen && (
+                <div
+                  className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[520px] bg-white border border-slate-200 shadow-lg flex z-[150]"
+                  onMouseEnter={handleMouseEnterNav}
+                  onMouseLeave={handleMouseLeaveNav}
+                >
+                  {/* LEFT: Categories */}
+                  <div className="w-[190px] border-r border-slate-200 py-2 flex-shrink-0 bg-slate-50">
+                    {categories.map((cat) => (
+                      <button
+                        key={cat.id}
+                        onMouseEnter={() => setHoveredCategory(cat.id)}
+                        className={`w-full text-left px-5 py-3 text-[10px] font-black uppercase tracking-widest border-l-2 ${
+                          hoveredCategory === cat.id
+                            ? 'border-orange-600 text-orange-600 bg-white'
+                            : 'border-transparent text-slate-500 hover:text-slate-900 hover:bg-white'
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* RIGHT: Models */}
+                  <div className="flex-1 py-2">
+                    {fleetData[hoveredCategory as keyof typeof fleetData].map((model) => (
+                      <button
+                        key={model.name}
+                        onClick={() => handleProductNavClick(hoveredCategory, model.name)}
+                        className="w-full text-left px-5 py-3 group"
+                      >
+                        <p className="text-[11px] font-black uppercase tracking-widest text-slate-800 group-hover:text-orange-600">
+                          {model.name}
+                        </p>
+                        <p className="text-[9px] font-semibold text-slate-400 mt-0.5 uppercase tracking-wider">
+                          {model.hp} · {model.weight}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <a href="#services" className="hover:text-orange-600">Services</a>
             <a href="#refurbish" className="hover:text-orange-600">Refurbish</a>
             <a href="#contact" className="hover:text-orange-600">Contact</a>
@@ -754,7 +855,12 @@ export default function CaseConstructionSite() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {fleetData[activeTab as keyof typeof fleetData].map((model, i) => (
-              <FleetCard key={i} model={model} onEnquire={() => setEnquiryModel(model.name)} />
+              <FleetCard
+                key={i}
+                model={model}
+                cardId={getCardId(activeTab, model.name)}
+                onEnquire={() => setEnquiryModel(model.name)}
+              />
             ))}
           </div>
         </div>

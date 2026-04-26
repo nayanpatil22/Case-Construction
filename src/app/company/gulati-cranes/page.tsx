@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const fleetData = {
@@ -652,13 +652,92 @@ const globalStyles = `
   }
   .nav-link:hover { color: #E55300; }
 
-  /* Product image */
   .product-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: center;
     display: block;
+  }
+
+  /* Dropdown styles */
+  .dd-cat-btn {
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    border-left: 2px solid transparent;
+    padding: 10px 16px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #555555;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .dd-cat-btn:hover, .dd-cat-btn.active {
+    border-left-color: #E55300;
+    color: #111111;
+    background: #FFFFFF;
+  }
+
+  .dd-sub-btn {
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    border-left: 2px solid transparent;
+    padding: 10px 16px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #555555;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .dd-sub-btn:hover, .dd-sub-btn.active {
+    border-left-color: #E55300;
+    color: #E55300;
+    background: #FFFFFF;
+  }
+
+  .dd-product-btn {
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #F0F0F0;
+  }
+  .dd-product-btn:last-child { border-bottom: none; }
+  .dd-product-btn:hover { background: #FFF5F0; }
+  .dd-product-btn:hover .dd-prod-name { color: #E55300; }
+
+  .dd-prod-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #111111;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .dd-prod-sub {
+    font-family: 'Barlow', sans-serif;
+    font-size: 10px;
+    color: #999999;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
   }
 
   @media (max-width: 767px) {
@@ -668,11 +747,13 @@ const globalStyles = `
   }
 `;
 
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function getCardId(catKey: string, subtypeKey: string, productName: string) {
+  return `card-${catKey}-${subtypeKey}-${productName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+}
+
 // ─── ENQUIRY MODAL ────────────────────────────────────────────────────────────
-type EnquiryModalProps = {
-  productName: string;
-  onClose: () => void;
-};
+type EnquiryModalProps = { productName: string; onClose: () => void };
 
 function EnquiryModal({ productName, onClose }: EnquiryModalProps) {
   const [submitted, setSubmitted] = useState(false);
@@ -728,24 +809,18 @@ type Product = {
 type ProductCardProps = {
   product: Product;
   onEnquire: (name: string) => void;
+  cardId: string;
 };
 
-function ProductCard({ product, onEnquire }: ProductCardProps) {
+function ProductCard({ product, onEnquire, cardId }: ProductCardProps) {
   const [imgError, setImgError] = useState(false);
 
   return (
-    <div className="product-card">
-      {/* Image area */}
+    <div id={cardId} className="product-card">
       <div style={{ aspectRatio: '16/9', background: '#F7F7F7', overflow: 'hidden', borderBottom: '1px solid #E5E5E5', position: 'relative' }}>
         {product.image && !imgError ? (
-          <img
-            src={product.image}
-            alt={product.name}
-            className="product-img"
-            onError={() => setImgError(true)}
-          />
+          <img src={product.image} alt={product.name} className="product-img" onError={() => setImgError(true)} />
         ) : (
-          /* Fallback placeholder if image missing or fails to load */
           <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ width: 52, height: 52, border: '1px solid #E5E5E5', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.5">
@@ -760,9 +835,7 @@ function ProductCard({ product, onEnquire }: ProductCardProps) {
       <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', flex: 1 }}>
         <h4 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 20, fontWeight: 800, textTransform: 'uppercase', color: '#111111', marginBottom: 6, lineHeight: 1.1 }}>{product.name}</h4>
         <p style={{ fontSize: 13, color: '#555555', lineHeight: 1.65, marginBottom: 18 }}>{product.shortDesc}</p>
-
         <div style={{ height: 1, background: '#E5E5E5', marginBottom: 16 }} />
-
         <div style={{ marginBottom: 16 }}>
           <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#777777', marginBottom: 8 }}>Highlights</p>
           <ul style={{ listStyle: 'none' }}>
@@ -773,9 +846,7 @@ function ProductCard({ product, onEnquire }: ProductCardProps) {
             ))}
           </ul>
         </div>
-
         <div style={{ height: 1, background: '#E5E5E5', marginBottom: 16 }} />
-
         <div style={{ marginBottom: 22 }}>
           <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#777777', marginBottom: 8 }}>Key Specifications</p>
           <div style={{ border: '1px solid #E5E5E5' }}>
@@ -787,7 +858,6 @@ function ProductCard({ product, onEnquire }: ProductCardProps) {
             ))}
           </div>
         </div>
-
         <div style={{ marginTop: 'auto' }}>
           <button onClick={() => onEnquire(product.name)} className="enquire-btn">Enquire Now</button>
         </div>
@@ -802,6 +872,12 @@ export default function GulatiCranesSite() {
   const [activeSubtype, setActiveSubtype] = useState<string>('pick_and_carry');
   const [enquiryProduct, setEnquiryProduct] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Dropdown state
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [ddHoveredCat, setDdHoveredCat] = useState<CategoryKey>('cranes');
+  const [ddHoveredSubtype, setDdHoveredSubtype] = useState<string>('pick_and_carry');
+  const dropdownTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleCategoryChange = (catKey: CategoryKey) => {
     setActiveCategory(catKey);
@@ -821,10 +897,42 @@ export default function GulatiCranesSite() {
     }
   };
 
+  function handleDdMouseEnter() {
+    if (dropdownTimeout.current) clearTimeout(dropdownTimeout.current);
+    setDropdownOpen(true);
+  }
+
+  function handleDdMouseLeave() {
+    dropdownTimeout.current = setTimeout(() => setDropdownOpen(false), 120);
+  }
+
+  function handleDdCatHover(catKey: CategoryKey) {
+    setDdHoveredCat(catKey);
+    const firstSubtype = Object.keys(fleetData[catKey].subtypes)[0];
+    setDdHoveredSubtype(firstSubtype);
+  }
+
+  function handleDdProductClick(catKey: CategoryKey, subtypeKey: string, productName: string) {
+    setDropdownOpen(false);
+    // Switch tabs
+    setActiveCategory(catKey);
+    setActiveSubtype(subtypeKey);
+    const cardId = getCardId(catKey, subtypeKey, productName);
+    setTimeout(() => {
+      document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => {
+        document.getElementById(cardId)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 350);
+    }, 60);
+  }
+
+  const ddSubtypes = fleetData[ddHoveredCat].subtypes;
+  const ddProducts = (ddSubtypes as Record<string, any>)[ddHoveredSubtype]?.products || [];
+
   const NAV_LINKS = [
     { label: 'Home', id: '/' },
     { label: 'About', id: 'about' },
-    { label: 'Products', id: 'products' },
+    { label: 'Products', id: 'products', hasDropdown: true },
     { label: 'Services', id: 'services' },
     { label: 'Contact', id: 'contact' },
   ];
@@ -844,9 +952,93 @@ export default function GulatiCranesSite() {
           </button>
 
           <div className="hide-mobile" style={{ display: 'flex', gap: 36, alignItems: 'center' }}>
-            {NAV_LINKS.map(l => (
-              <button key={l.id} onClick={() => scrollTo(l.id)} className="nav-link">{l.label}</button>
-            ))}
+            {NAV_LINKS.map(l =>
+              l.hasDropdown ? (
+                <div
+                  key={l.id}
+                  style={{ position: 'relative' }}
+                  onMouseEnter={handleDdMouseEnter}
+                  onMouseLeave={handleDdMouseLeave}
+                >
+                  <button
+                    onClick={() => scrollTo(l.id)}
+                    className="nav-link"
+                    style={{ display: 'flex', alignItems: 'center', gap: 5 }}
+                  >
+                    {l.label}
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginTop: 1 }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {dropdownOpen && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        marginTop: 8,
+                        display: 'flex',
+                        background: '#FFFFFF',
+                        border: '1px solid #E5E5E5',
+                        borderTop: '3px solid #E55300',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.10)',
+                        zIndex: 300,
+                        minWidth: 560,
+                      }}
+                      onMouseEnter={handleDdMouseEnter}
+                      onMouseLeave={handleDdMouseLeave}
+                    >
+                      {/* COLUMN 1: Categories */}
+                      <div style={{ width: 170, background: '#F7F7F7', borderRight: '1px solid #E5E5E5', padding: '8px 0', flexShrink: 0 }}>
+                        <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#AAAAAA', padding: '6px 16px 8px' }}>Category</p>
+                        {(Object.keys(fleetData) as CategoryKey[]).map(catKey => (
+                          <button
+                            key={catKey}
+                            className={`dd-cat-btn ${ddHoveredCat === catKey ? 'active' : ''}`}
+                            onMouseEnter={() => handleDdCatHover(catKey)}
+                          >
+                            {fleetData[catKey].label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* COLUMN 2: Subtypes */}
+                      <div style={{ width: 150, background: '#FAFAFA', borderRight: '1px solid #E5E5E5', padding: '8px 0', flexShrink: 0 }}>
+                        <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#AAAAAA', padding: '6px 16px 8px' }}>Type</p>
+                        {Object.entries(ddSubtypes).map(([subtypeKey, subtype]) => (
+                          <button
+                            key={subtypeKey}
+                            className={`dd-sub-btn ${ddHoveredSubtype === subtypeKey ? 'active' : ''}`}
+                            onMouseEnter={() => setDdHoveredSubtype(subtypeKey)}
+                          >
+                            {(subtype as any).label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* COLUMN 3: Products */}
+                      <div style={{ flex: 1, padding: '8px 0', minWidth: 220 }}>
+                        <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#AAAAAA', padding: '6px 14px 8px' }}>Products</p>
+                        {ddProducts.map((product: Product) => (
+                          <button
+                            key={product.name}
+                            className="dd-product-btn"
+                            onClick={() => handleDdProductClick(ddHoveredCat, ddHoveredSubtype, product.name)}
+                          >
+                            <span className="dd-prod-name">{product.name}</span>
+                            <span className="dd-prod-sub">{product.shortDesc}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button key={l.id} onClick={() => scrollTo(l.id)} className="nav-link">{l.label}</button>
+              )
+            )}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -875,16 +1067,11 @@ export default function GulatiCranesSite() {
             <div style={{ width: 6, height: 6, background: '#E55300', borderRadius: '50%', flexShrink: 0 }} />
             <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)' }}>Established 1984 · Nashik, Maharashtra · PAN India</span>
           </div>
-
           <h1 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: 'clamp(60px, 9vw, 104px)', lineHeight: 0.92, textTransform: 'uppercase', color: '#FFFFFF', marginBottom: 24 }}>
             Welcome<br />To Gulati<br /><span style={{ color: '#E55300' }}>Cranes.</span>
           </h1>
-
           <p style={{ fontSize: 18, fontWeight: 500, color: '#E55300', marginBottom: 12 }}>Lifting India's Heavy Industry Since 1984</p>
-          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)', lineHeight: 1.7, maxWidth: 460, marginBottom: 44 }}>
-            Leading service providers of crane and lifting solutions across India. Reliable, safe, and engineered for every challenge.
-          </p>
-
+          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)', lineHeight: 1.7, maxWidth: 460, marginBottom: 44 }}>Leading service providers of crane and lifting solutions across India. Reliable, safe, and engineered for every challenge.</p>
           <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
             <button onClick={() => scrollTo('products')} className="btn-primary" style={{ fontSize: 13, padding: '14px 36px' }}>Explore Our Fleet</button>
             <button onClick={() => scrollTo('contact')} className="btn-white" style={{ fontSize: 13, padding: '14px 36px' }}>Request a Quote</button>
@@ -919,26 +1106,16 @@ export default function GulatiCranesSite() {
           <div>
             <span className="section-label">About Us</span>
             <div className="divider" />
-            <h2 className="section-title" style={{ fontSize: 'clamp(36px,5vw,56px)', marginBottom: 24 }}>
-              40 Years of<br />Lifting<br />Excellence.
-            </h2>
-            <p style={{ color: '#555555', fontSize: 15, lineHeight: 1.75, marginBottom: 18 }}>
-              Established in the year 1984, Gulati Cranes are counted amongst the leading service providers of all types of cranes. Our range of services includes Crane Rental, Man Basket Crane Rental, Tower Cranes Rental, Specialized Lifting Tools, Forklift Rental, and much more.
-            </p>
-            <p style={{ color: '#555555', fontSize: 15, lineHeight: 1.75, marginBottom: 18 }}>
-              Acclaimed for heat resistance, friction resistance, ductility, ability to withstand fluctuations, and stress resistance — our machines are built for India's most demanding conditions.
-            </p>
-            <p style={{ color: '#555555', fontSize: 15, lineHeight: 1.75, marginBottom: 40 }}>
-              Banking on our team, we have earned a reputed position in the market. We make effective use of the latest technology in our service providing process. Our experienced staff efficiently oversees every task related to production, quality control, dispatch, and after-sales services.
-            </p>
+            <h2 className="section-title" style={{ fontSize: 'clamp(36px,5vw,56px)', marginBottom: 24 }}>40 Years of<br />Lifting<br />Excellence.</h2>
+            <p style={{ color: '#555555', fontSize: 15, lineHeight: 1.75, marginBottom: 18 }}>Established in the year 1984, Gulati Cranes are counted amongst the leading service providers of all types of cranes. Our range of services includes Crane Rental, Man Basket Crane Rental, Tower Cranes Rental, Specialized Lifting Tools, Forklift Rental, and much more.</p>
+            <p style={{ color: '#555555', fontSize: 15, lineHeight: 1.75, marginBottom: 18 }}>Acclaimed for heat resistance, friction resistance, ductility, ability to withstand fluctuations, and stress resistance — our machines are built for India's most demanding conditions.</p>
+            <p style={{ color: '#555555', fontSize: 15, lineHeight: 1.75, marginBottom: 40 }}>Banking on our team, we have earned a reputed position in the market. We make effective use of the latest technology in our service providing process. Our experienced staff efficiently oversees every task related to production, quality control, dispatch, and after-sales services.</p>
             <button onClick={() => scrollTo('contact')} className="btn-primary">Learn More About Us</button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {WHY_US.map((w, i) => (
               <div key={i} className="why-card">
-                <div style={{ width: 44, height: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#E55300', color: '#FFFFFF', fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: 16 }}>
-                  {String(i + 1).padStart(2, '0')}
-                </div>
+                <div style={{ width: 44, height: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#E55300', color: '#FFFFFF', fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: 16 }}>{String(i + 1).padStart(2, '0')}</div>
                 <div>
                   <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: 17, textTransform: 'uppercase', color: '#111111', marginBottom: 5 }}>{w.title}</p>
                   <p style={{ fontSize: 13, color: '#555555', lineHeight: 1.6 }}>{w.desc}</p>
@@ -952,12 +1129,7 @@ export default function GulatiCranesSite() {
       {/* ── EQUIPMENT CATEGORIES STRIP ── */}
       <div style={{ background: '#F7F7F7', borderTop: '1px solid #E5E5E5', borderBottom: '1px solid #E5E5E5' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', borderLeft: '1px solid #E5E5E5' }}>
-          {[
-            ['Cranes', '10+ Models'],
-            ['Earthmoving', 'Loaders & More'],
-            ['Aerial Platforms', 'Boom Lifts'],
-            ['Utility Vehicles', 'Recovery & Towing'],
-          ].map(([label, sub]) => (
+          {[['Cranes', '10+ Models'], ['Earthmoving', 'Loaders & More'], ['Aerial Platforms', 'Boom Lifts'], ['Utility Vehicles', 'Recovery & Towing']].map(([label, sub]) => (
             <div key={label} style={{ padding: '28px 0', textAlign: 'center', borderRight: '1px solid #E5E5E5' }}>
               <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 17, fontWeight: 800, textTransform: 'uppercase', color: '#111111', marginBottom: 4 }}>{label}</p>
               <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#E55300' }}>{sub}</p>
@@ -973,12 +1145,8 @@ export default function GulatiCranesSite() {
             <div style={{ position: 'sticky', top: 80 }}>
               <span className="section-label">Our Services</span>
               <div className="divider" />
-              <h2 className="section-title" style={{ fontSize: 'clamp(36px,4vw,52px)', marginBottom: 18 }}>
-                Complete<br />Crane &<br />Lifting<br />Solutions.
-              </h2>
-              <p style={{ color: '#555555', fontSize: 14, lineHeight: 1.7, marginBottom: 28 }}>
-                From rental to specialized operations, Gulati Cranes provides end-to-end industrial lifting services across India.
-              </p>
+              <h2 className="section-title" style={{ fontSize: 'clamp(36px,4vw,52px)', marginBottom: 18 }}>Complete<br />Crane &<br />Lifting<br />Solutions.</h2>
+              <p style={{ color: '#555555', fontSize: 14, lineHeight: 1.7, marginBottom: 28 }}>From rental to specialized operations, Gulati Cranes provides end-to-end industrial lifting services across India.</p>
               <button onClick={() => scrollTo('contact')} className="btn-primary">Enquire About a Service</button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -1034,7 +1202,12 @@ export default function GulatiCranesSite() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
               {currentProducts.map((product: Product, i: number) => (
-                <ProductCard key={i} product={product} onEnquire={setEnquiryProduct} />
+                <ProductCard
+                  key={i}
+                  product={product}
+                  onEnquire={setEnquiryProduct}
+                  cardId={getCardId(activeCategory, activeSubtype, product.name)}
+                />
               ))}
             </div>
           </div>
@@ -1048,24 +1221,13 @@ export default function GulatiCranesSite() {
             <div>
               <span className="section-label">PAN India Presence</span>
               <div className="divider" />
-              <h2 className="section-title" style={{ fontSize: 'clamp(36px,5vw,52px)', marginBottom: 20 }}>
-                Wherever Your<br />Project Demands.
-              </h2>
-              <p style={{ color: '#555555', fontSize: 15, lineHeight: 1.75, marginBottom: 18 }}>
-                We provide services across PAN India with fast deployment and reliable support. From Nashik's heartland to the farthest project sites, Gulati Cranes ensures your equipment is where you need it, when you need it.
-              </p>
-              <p style={{ color: '#555555', fontSize: 15, lineHeight: 1.75, marginBottom: 36 }}>
-                Our experienced team efficiently oversees every task — from dispatch to after-sales — ensuring uninterrupted operations across all major states and industrial corridors.
-              </p>
+              <h2 className="section-title" style={{ fontSize: 'clamp(36px,5vw,52px)', marginBottom: 20 }}>Wherever Your<br />Project Demands.</h2>
+              <p style={{ color: '#555555', fontSize: 15, lineHeight: 1.75, marginBottom: 18 }}>We provide services across PAN India with fast deployment and reliable support. From Nashik's heartland to the farthest project sites, Gulati Cranes ensures your equipment is where you need it, when you need it.</p>
+              <p style={{ color: '#555555', fontSize: 15, lineHeight: 1.75, marginBottom: 36 }}>Our experienced team efficiently oversees every task — from dispatch to after-sales — ensuring uninterrupted operations across all major states and industrial corridors.</p>
               <button onClick={() => scrollTo('contact')} className="btn-primary">Contact Us Today</button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              {[
-                ['Fast Deployment', 'Quick mobilization to your project site across India.'],
-                ['Reliable Support', 'Continuous after-sales and maintenance assistance.'],
-                ['All Terrains', 'Equipment suited for urban, industrial, and remote sites.'],
-                ['Nationwide Network', 'Operations covering all major Indian states.'],
-              ].map(([title, desc]) => (
+              {[['Fast Deployment', 'Quick mobilization to your project site across India.'], ['Reliable Support', 'Continuous after-sales and maintenance assistance.'], ['All Terrains', 'Equipment suited for urban, industrial, and remote sites.'], ['Nationwide Network', 'Operations covering all major Indian states.']].map(([title, desc]) => (
                 <div key={title} style={{ background: '#FFFFFF', border: '1px solid #E5E5E5', borderTop: '3px solid #E55300', padding: '22px 20px' }}>
                   <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: 16, textTransform: 'uppercase', color: '#111111', marginBottom: 8 }}>{title}</p>
                   <p style={{ fontSize: 13, color: '#555555', lineHeight: 1.6 }}>{desc}</p>
@@ -1082,15 +1244,9 @@ export default function GulatiCranesSite() {
           <div>
             <span className="section-label">Contact Us</span>
             <div className="divider" />
-            <h2 className="section-title" style={{ fontSize: 'clamp(40px,6vw,68px)', marginBottom: 40 }}>
-              Connect<br />With Us.
-            </h2>
+            <h2 className="section-title" style={{ fontSize: 'clamp(40px,6vw,68px)', marginBottom: 40 }}>Connect<br />With Us.</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 28, marginBottom: 40 }}>
-              {[
-                ['Location', 'Nashik, Maharashtra, India'],
-                ['Service Coverage', 'PAN India'],
-                ['Established', '1984'],
-              ].map(([label, val]) => (
+              {[['Location', 'Nashik, Maharashtra, India'], ['Service Coverage', 'PAN India'], ['Established', '1984']].map(([label, val]) => (
                 <div key={label} style={{ borderLeft: '3px solid #E55300', paddingLeft: 18 }}>
                   <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#777777', marginBottom: 5 }}>{label}</p>
                   <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 22, fontWeight: 800, color: '#111111' }}>{val}</p>
@@ -1098,7 +1254,6 @@ export default function GulatiCranesSite() {
               ))}
             </div>
           </div>
-
           <div style={{ background: '#FFFFFF', border: '1px solid #E5E5E5', borderTop: '3px solid #E55300', padding: '36px' }}>
             <h3 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: 24, textTransform: 'uppercase', color: '#111111', marginBottom: 28 }}>Send Us a Message</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -1145,9 +1300,7 @@ export default function GulatiCranesSite() {
           </div>
         </div>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '16px 32px', maxWidth: 1280, margin: '0 auto' }}>
-          <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)' }}>
-            © {new Date().getFullYear()} Gulati Cranes · PAN India Lifting Solutions
-          </p>
+          <p style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)' }}>© {new Date().getFullYear()} Gulati Cranes · PAN India Lifting Solutions</p>
         </div>
       </footer>
     </main>
